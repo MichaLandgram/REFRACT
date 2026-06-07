@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as Y from 'yjs';
 import { padPersons, freshSchema, cloneDoc } from '../Helper/helper';
-import { readSnbPersonsAndKnows, SF03_DIR } from '../Helper/SnbDataReader';
+import { readSnbPersonsAndKnows, SF3_DIR } from '../Helper/SnbDataReader';
 import { loadPersons } from '../Helper/NodeLoaders';
 import { loadEdges } from '../Helper/RelationshipLoaders';
 import { Edge, RQ1Metrics } from '../Helper/resultInterfaces';
@@ -178,7 +178,7 @@ function benchSplitNT(persons: Record<string, any>[], edges: Edge[], preloadedDo
 
 
 export function runRQ1(): RQ1Metrics[] {
-    const sfDir      = path.resolve(process.cwd(), SF03_DIR);
+    const sfDir      = path.resolve(process.cwd(), SF3_DIR);
     const data       = readSnbPersonsAndKnows(sfDir);
     const allPersons = data.persons;
     const allKnows   = data.knows;

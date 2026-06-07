@@ -7,7 +7,7 @@ import { loadPersons } from '../Helper/NodeLoaders';
 import { loadEdges } from '../Helper/RelationshipLoaders';
 import { Edge, RQ1_2_Result } from '../Helper/resultInterfaces';
 import { padPersons, freshSchema, cloneDoc } from '../Helper/helper';
-import { readSnbData, readSnbPersonsAndKnows, SF03_DIR } from '../Helper/SnbDataReader';
+import { readSnbData, readSnbPersonsAndKnows, SF01_DIR, SF3_DIR } from '../Helper/SnbDataReader';
 import {
     eagerRenamePropertyKey,
     eagerSplit,
@@ -448,7 +448,7 @@ const SMO_BENCH: Record<string, BenchFn> = {
 
 
 export function runRQ1_2(): RQ1_2_Result[] {
-    const sfDir     = path.resolve(process.cwd(), SF03_DIR);
+    const sfDir     = path.resolve(process.cwd(), SF01_DIR);
     const data       = readSnbPersonsAndKnows(sfDir);
     const allPersons = data.persons;
     const persons    = padPersons(allPersons, 1000);
@@ -477,7 +477,6 @@ export function runRQ1_2(): RQ1_2_Result[] {
             iTgt = headers.indexOf('Person.id.1');
         }
         if (iSrc < 0 || iTgt < 0) {
-            console.warn(`knows unrecognised headers ${JSON.stringify(headers)} — using positional fallback [1,2]`);
             iSrc = 1; iTgt = 2; iDt = 0;
         }
 
@@ -503,7 +502,7 @@ export function runRQ1_2(): RQ1_2_Result[] {
 
     const REPS    = 10;
     const results: RQ1_2_Result[] = [];
-
+    console.log(`Running RQ1.2 benchmarks with ${persons.length} persons and ${edges.length} edges:`);
     for (const [smo, bench] of Object.entries(SMO_BENCH)) {
         const REFRACTMs:   number[] = [];
         const cambriaMs: number[] = [];

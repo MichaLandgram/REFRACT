@@ -14,7 +14,7 @@ export const SF01_DIR = path.join(
 );
 
 /** LDBC SF3 initial snapshot. */
-export const SF03_DIR = path.join(
+export const SF3_DIR = path.join(
     'snb-output-sf3',
     'graphs', 'csv', 'bi', 'composite-merged-fk', 'initial_snapshot',
 );

@@ -7,7 +7,7 @@ import { padPersons,
     freshSchema, cloneDoc, median,
 } from '../Helper/helper';
 import { RQ3_FS_Result, Edge } from '../Helper/resultInterfaces';
-import { SF01_DIR, SF03_DIR, findCsvFile, parseLdbcCsv } from '../Helper/SnbDataReader';
+import { SF01_DIR, SF3_DIR, findCsvFile, parseLdbcCsv } from '../Helper/SnbDataReader';
 import { loadEdges } from '../Helper/RelationshipLoaders';
 import {
     eagerRenamePropertyKey,
@@ -24,7 +24,7 @@ import {
 
 import { PropertyGraph } from '../../src/GraphDB_CRDT/PropertyGraph';
 
-const N_FIXED  = 1000;
+const N_FIXED  = 10000;
 const REPS_F1  = 10;
 const INT_REPS = 7;
 const N_SEEDS  = 10;
@@ -341,7 +341,7 @@ const SMO_BENCH: Record<string, BenchFn> = {
 
 export function runRQ4(): RQ3_FS_Result[] {
 
-    const sfDir = path.resolve(process.cwd(), SF01_DIR);
+    const sfDir = path.resolve(process.cwd(), SF3_DIR);
 
     const personFile = findCsvFile(path.join(sfDir, 'dynamic/Person'));
     if (!personFile) throw new Error(`LDBC Person CSV not found at: ${sfDir}`);
