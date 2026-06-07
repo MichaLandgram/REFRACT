@@ -1,0 +1,94 @@
+{
+  "results": [
+    {
+      "smo": "renameL",
+      "N": 100,
+      "smoMs": 0.9069,
+      "lensGenMs": 0.5695,
+      "lazyReadyMs": 1.4764,
+      "cambriaSmoMs": 1.0542,
+      "cambriaReadyMs": 1.0825,
+      "eagerMigrationMs": 0.8337
+    },
+    {
+      "smo": "removePk",
+      "N": 100,
+      "smoMs": 0.3565,
+      "lensGenMs": 0.1997,
+      "lazyReadyMs": 0.5562,
+      "cambriaSmoMs": 1.0552,
+      "cambriaReadyMs": 1.0932,
+      "eagerMigrationMs": 1.306
+    },
+    {
+      "smo": "splitNT",
+      "N": 100,
+      "smoMs": 0.5716,
+      "lensGenMs": 0.225,
+      "lazyReadyMs": 0.7966,
+      "cambriaSmoMs": 1.1962,
+      "cambriaReadyMs": 1.3988999999999998,
+      "eagerMigrationMs": 1.1504
+    },
+    {
+      "smo": "renameL",
+      "N": 250,
+      "smoMs": 0.7965,
+      "lensGenMs": 0.2309,
+      "lazyReadyMs": 1.0274,
+      "cambriaSmoMs": 1.0926,
+      "cambriaReadyMs": 1.1341,
+      "eagerMigrationMs": 2.1559
+    },
+    {
+      "smo": "removePk",
+      "N": 250,
+      "smoMs": 0.4685,
+      "lensGenMs": 0.2179,
+      "lazyReadyMs": 0.6864,
+      "cambriaSmoMs": 1.1941,
+      "cambriaReadyMs": 1.2439,
+      "eagerMigrationMs": 4.3914
+    },
+    {
+      "smo": "splitNT",
+      "N": 250,
+      "smoMs": 0.666,
+      "lensGenMs": 0.1945,
+      "lazyReadyMs": 0.8605,
+      "cambriaSmoMs": 1.1746,
+      "cambriaReadyMs": 1.2147000000000001,
+      "eagerMigrationMs": 2.575
+    },
+    {
+      "smo": "renameL",
+      "N": 500,
+      "smoMs": 0.42,
+      "lensGenMs": 0.3242,
+      "lazyReadyMs": 0.7442,
+      "cambriaSmoMs": 1.0981,
+      "cambriaReadyMs": 1.1302,
+      "eagerMigrationMs": 6.2341
+    },
+    {
+      "smo": "removePk",
+      "N": 500,
+      "smoMs": 0.5023,
+      "lensGenMs": 0.274,
+      "lazyReadyMs": 0.7763,
+      "cambriaSmoMs": 1.6456,
+      "cambriaReadyMs": 1.68,
+      "eagerMigrationMs": 5.1257
+    },
+    {
+      "smo": "splitNT",
+      "N": 500,
+      "smoMs": 0.6613,
+      "lensGenMs": 0.2816,
+      "lazyReadyMs": 0.9429000000000001,
+      "cambriaSmoMs": 1.0056,
+      "cambriaReadyMs": 1.0614000000000001,
+      "eagerMigrationMs": 5.8898
+    }
+  ]
+}

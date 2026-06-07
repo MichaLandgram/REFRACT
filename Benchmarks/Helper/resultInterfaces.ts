@@ -15,8 +15,8 @@ export interface RQ1_2_Result {
     smo:              string;
     rep:              number;
     N:                number;
-    E:                number;   // edge count (0 for node-only SMOs)
-    stub:             boolean;  // not used anymore
+    E:                number;
+    stub:             boolean;
     smoMs:            number;
     lensGenMs:        number;
     lazyReadyMs:      number;
