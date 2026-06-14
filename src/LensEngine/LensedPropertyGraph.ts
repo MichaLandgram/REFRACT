@@ -47,8 +47,30 @@ export class LensedPropertyGraph {
         this.db.updateNode({ doc: this.doc, nodeId, props: dbProps });
     }
 
+    public updateEdge(edgeId: string, appProps: Record<string, any> ): void {
+        const rawEdge = this.db.getRawEdgeById(this.doc, edgeId);
+        if (!rawEdge) {
+            throw new LensEngineError(`Edge "${edgeId}" not found or already removed.`);
+        }
+        const dbType = rawEdge.type;
+        if (!dbType) {
+            throw new LensEngineError(`Edge "${edgeId}" not found or already removed.`);
+        }
+        const dbProps: Record<string, any> = {};
+        for (const [key, rawVal] of Object.entries(appProps)) {
+            if (key.startsWith('__')) continue;
+            const { dbKey } = this.lens.getAppKeyAndDbKey(dbType, key, 'RelationshipType');
+            dbProps[dbKey] = this.lens.encodeValueForGraph(dbType, key, rawVal, 'RelationshipType');
+        }
+        this.db.updateEdge({ doc: this.doc, edgeId, props: dbProps });
+    }   
+
     public deleteNode(nodeId: string): void {
         this.db.deleteNode({ doc: this.doc, nodeId });
+    }
+
+    public deleteEdge(edgeId: string): void {
+        this.db.deleteEdge({ doc: this.doc, edgeId });
     }
 
     // full read

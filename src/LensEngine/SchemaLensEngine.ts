@@ -13,6 +13,7 @@ export class SchemaLensEngine {
     private appKeyDbKeyCache = new Map<string, { appKey: string, dbKey: string }>();
     private identityTransformCache = new Map<string, boolean>();
     private resolveActiveTypeCache = new Map<string, string>();
+    private resolveActiveEdgeTypeCache = new Map<string, string>();
 
     constructor(schemaCRDT: Schema_v1) {
         this.schemaCRDT = schemaCRDT;
@@ -23,6 +24,7 @@ export class SchemaLensEngine {
             this.appKeyDbKeyCache.clear();
             this.identityTransformCache.clear();
             this.resolveActiveTypeCache.clear();
+            this.resolveActiveEdgeTypeCache.clear();
         });
     }
     public refreshCache() {
@@ -32,6 +34,7 @@ export class SchemaLensEngine {
         this.appKeyDbKeyCache.clear();
         this.identityTransformCache.clear();
         this.resolveActiveTypeCache.clear();
+        this.resolveActiveEdgeTypeCache.clear();
     }
     private static readonly TYPE_LATTICE: Record<string, number> = {
         string:  4,
@@ -69,27 +72,8 @@ export class SchemaLensEngine {
             if (!targetTypes) return undefined;
 
             if (targetTypes[identifyingType]) {
-                const propertyMap = targetTypes[identifyingType].properties;
-                if (propertyMap) {
-                    let propVal = propertyMap[propertyKey];
-                    if (!propVal) {
-                        for (const v of Object.values(propertyMap)) {
-                            if ((v as any).name === propertyKey) {
-                                propVal = v;
-                                break;
-                            }
-                        }
-                    }
-                    if (propVal) {
-                        const activeTypes = propVal.activeTypes;
-                        if (activeTypes) {
-                            const activeValues = Object.values(activeTypes);
-                            if (activeValues.length > 0) {
-                                return this.resolveOrdering(activeValues);
-                            }
-                        }
-                    }
-                }
+                const lens = this.extractPropertyLens(targetTypes[identifyingType].properties, propertyKey);
+                if (lens) return lens;
             }
 
             if (changeType === "NodeType") {
@@ -98,31 +82,43 @@ export class SchemaLensEngine {
                     const rule = splitRule as any;
                     if (rule.kind === 'split' && Object.values(rule.mapping).includes(identifyingType)) {
                         if (targetTypes[legacyTypeName]) {
-                            const legacyPropertyMap = targetTypes[legacyTypeName].properties;
-                            if (legacyPropertyMap) {
-                                let propVal = legacyPropertyMap[propertyKey];
-                                if (!propVal) {
-                                    for (const v of Object.values(legacyPropertyMap)) {
-                                        if ((v as any).name === propertyKey) {
-                                            propVal = v;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if (propVal) {
-                                    const activeTypes = propVal.activeTypes;
-                                    if (activeTypes) {
-                                        const activeValues = Object.values(activeTypes);
-                                        if (activeValues.length > 0) {
-                                            return this.resolveOrdering(activeValues);
-                                        }
-                                    }
-                                }
-                            }
+                            const lens = this.extractPropertyLens(targetTypes[legacyTypeName].properties, propertyKey);
+                            if (lens) return lens;
+                        }
+                    }
+                }
+                const unionRule = mappings[identifyingType];
+                if (unionRule && unionRule.kind === 'union') {
+                    for (const legacyTypeName of unionRule.legacyTypes) {
+                        if (targetTypes[legacyTypeName]) {
+                            const lens = this.extractPropertyLens(targetTypes[legacyTypeName].properties, propertyKey);
+                            if (lens) return lens;
                         }
                     }
                 }
             }
+            if (changeType === "RelationshipType") {
+                const mappings = this.cachedSchema.schema_mappings || {};
+                for (const [legacyEdgeName, splitRule] of Object.entries(mappings)) {
+                    const rule = splitRule as any;
+                    if (rule.kind === 'splitRT' && (rule.newEdge1 === identifyingType || rule.newEdge2 === identifyingType)) {
+                        if (targetTypes[legacyEdgeName]) {
+                            const lens = this.extractPropertyLens(targetTypes[legacyEdgeName].properties, propertyKey);
+                            if (lens) return lens;
+                        }
+                    }
+                }
+                const unionRule = mappings[identifyingType];
+                if (unionRule && unionRule.kind === 'unionRT') {
+                    for (const legacyEdgeName of unionRule.legacyEdges) {
+                        if (targetTypes[legacyEdgeName]) {
+                            const lens = this.extractPropertyLens(targetTypes[legacyEdgeName].properties, propertyKey);
+                            if (lens) return lens;
+                        }
+                    }
+                }
+            }
+
             return undefined;
         };
 
@@ -130,13 +126,36 @@ export class SchemaLensEngine {
         this.propertyLensCache.set(cacheKey, result === undefined ? null : result);
         return result;
     }
+
+    private extractPropertyLens(propertyMap: any, propertyKey: string): PropertyLensMap | undefined {
+        if (!propertyMap) return undefined;
+        let propVal = propertyMap[propertyKey];
+        if (!propVal) {
+            for (const value of Object.values(propertyMap)) {
+                if ((value as any).name === propertyKey) {
+                    propVal = value;
+                    break;
+                }
+            }
+        }
+        if (propVal) {
+            const activeTypes = propVal.activeTypes;
+            if (activeTypes) {
+                const activeValues = Object.values(activeTypes);
+                if (activeValues.length > 0) {
+                    return this.resolveOrdering(activeValues);
+                }
+            }
+        }
+        return undefined;
+    }
     public resolveActiveType(rawType: string, rawProps: Record<string, any>): string {
         if (!this.cachedSchema) this.refreshCache();
         const mappings = this.cachedSchema.schema_mappings || {};
 
         if (!mappings || Object.keys(mappings).length === 0) return rawType;
 
-        const maxIterations = 10;
+        const maxIterations = 100;
         let cacheKey = rawType;
         let temp = rawType;
         for (let i = 0; i < maxIterations; i++) {
@@ -182,6 +201,52 @@ export class SchemaLensEngine {
         this.resolveActiveTypeCache.set(cacheKey, currentType);
         return currentType;
     }
+
+    public resolveActiveEdgeType(rawType: string, rawProps: Record<string, any>): string {
+        if (!this.cachedSchema) this.refreshCache();
+        const mappings = this.cachedSchema.schema_mappings || {};
+
+        if (!mappings || Object.keys(mappings).length === 0) return rawType;
+
+        const maxIterations = 100;
+        let cacheKey = rawType;
+        const cached = this.resolveActiveEdgeTypeCache.get(cacheKey);
+        if (cached !== undefined) return cached;
+
+        let currentType = rawType;
+        let stabilized = false;
+        let iterations = 0;
+
+        while (!stabilized && iterations < maxIterations) {
+            iterations++;
+            let nextType = currentType;
+            const splitRule = mappings[currentType];
+            if (splitRule && splitRule.kind === 'splitRT') {
+                const splitProp = splitRule.splitProperty;
+                if (splitProp && rawProps[splitProp] !== undefined) {
+                    const decide = unpack(rawProps[splitProp]);
+                    nextType = (splitRule.mapping && splitRule.mapping[decide]) || splitRule.newEdge1;
+                } else {
+                    nextType = splitRule.newEdge1;
+                }
+            }
+            if (nextType === currentType) {
+                for (const [, rule] of Object.entries(mappings)) {
+                    const rul = rule as any;
+                    if (rul.kind === 'unionRT' && rul.legacyEdges.includes(currentType)) {
+                        nextType = rul.newEdge;
+                        break;
+                    }
+                }
+            }
+
+            if (nextType === currentType) stabilized = true;
+            else currentType = nextType;
+        }
+
+        this.resolveActiveEdgeTypeCache.set(cacheKey, currentType);
+        return currentType;
+    }
     
     public encodeNodeForGraph( appType: string, appProps: Record<string, any>): { dbType: string, dbProps: Record<string, any> } {
         if (!this.cachedSchema) this.refreshCache();
@@ -191,7 +256,7 @@ export class SchemaLensEngine {
         const mappings = this.cachedSchema.schema_mappings || {};
 
         let stabilized = false;
-        const maxIterations = 10;
+        const maxIterations = 100;
         let iterations = 0;
 
         while (!stabilized && iterations < maxIterations) {
@@ -246,13 +311,64 @@ export class SchemaLensEngine {
     }
 
     public encodeRelationshipForGraph( appType: string, appProps: Record<string, any> ): { dbType: string, dbProps: Record<string, any> } {
-        const finalEncodedProps: Record<string, any> = {};
-        for (const [key, rawVal] of Object.entries(appProps)) {
-            if (key.startsWith('__')) continue;
-            const { dbKey } = this.getAppKeyAndDbKey(appType, key, 'RelationshipType');
-            finalEncodedProps[dbKey] = this.encodeValueForGraph(appType, key, rawVal, 'RelationshipType');
+        if (!this.cachedSchema) this.refreshCache();
+        const mappings = this.cachedSchema.schema_mappings || {};
+
+        let currentType = appType;
+        const dbProps: Record<string, any> = { ...appProps };
+
+        let stabilized = false;
+        const maxIterations = 100;
+        let iterations = 0;
+
+        while (!stabilized && iterations < maxIterations) {
+            iterations++;
+            let nextType = currentType;
+            let splitRuleFound: any = null;
+            for (const [legacyEdgeName, rule] of Object.entries(mappings)) {
+                const ru = rule as any;
+                if (ru.kind === 'splitRT' && (ru.newEdge1 === currentType || ru.newEdge2 === currentType)) {
+                    splitRuleFound = ru;
+                    nextType = legacyEdgeName;
+                    break;
+                }
+            }
+            if (splitRuleFound) {
+                const splitProp = splitRuleFound.splitProperty;
+                if (splitProp) {
+                    if (splitRuleFound.newEdge1 === currentType) {
+                        dbProps[splitProp] = '1';
+                    } else if (splitRuleFound.newEdge2 === currentType) {
+                        dbProps[splitProp] = '2';
+                    }
+                }
+                currentType = nextType;
+                continue;
+            }
+            let unionRuleFound = false;
+            for (const [newEdgeName, rule] of Object.entries(mappings)) {
+                const r = rule as any;
+                if (r.kind === 'unionRT' && r.newEdge === currentType) {
+                    nextType = r.legacyEdges[0] || currentType;
+                    unionRuleFound = true;
+                    break;
+                }
+            }
+
+            if (unionRuleFound) {
+                currentType = nextType;
+            } else {
+                stabilized = true;
+            }
         }
-        return { dbType: appType, dbProps: finalEncodedProps };
+
+        const finalEncodedProps: Record<string, any> = {};
+        for (const [key, rawVal] of Object.entries(dbProps)) {
+            if (key.startsWith('__')) continue;
+            const { dbKey } = this.getAppKeyAndDbKey(currentType, key, 'RelationshipType');
+            finalEncodedProps[dbKey] = this.encodeValueForGraph(currentType, key, rawVal, 'RelationshipType');
+        }
+        return { dbType: currentType, dbProps: finalEncodedProps };
     }
 
     public decodeStringFromGraph(identifyingType: string, propertyKey: string, rawValue: any, changeType: whatType): any {
@@ -369,6 +485,10 @@ export class SchemaLensEngine {
 
     public isRelationshipAllowed(identifyingEdge: string): boolean {
         if (!this.cachedSchema) this.refreshCache();
+        const mappings = this.cachedSchema.schema_mappings || {};
+        if (mappings[identifyingEdge] && mappings[identifyingEdge].kind === 'splitRT') {
+            return false;
+        }
         return this.cachedSchema.relationshipTypes?.[identifyingEdge] !== undefined;
     }
 
@@ -425,6 +545,40 @@ export class SchemaLensEngine {
                     if (targetTypes[legacyTypeName]) {
                         result = scanMap(targetTypes[legacyTypeName].properties);
                         if (result) break;
+                    }
+                }
+            }
+            if (!result) {
+                const unionRule = mappings[identifyingType];
+                if (unionRule && unionRule.kind === 'union') {
+                    for (const legacyTypeName of unionRule.legacyTypes) {
+                        if (targetTypes[legacyTypeName]) {
+                            result = scanMap(targetTypes[legacyTypeName].properties);
+                            if (result) break;
+                        }
+                    }
+                }
+            }
+        }
+        if (!result && changeType === "RelationshipType") {
+            const mappings = this.cachedSchema.schema_mappings || {};
+            for (const [legacyEdgeName, splitRule] of Object.entries(mappings)) {
+                const rule = splitRule as any;
+                if (rule.kind === 'splitRT' && (rule.newEdge1 === identifyingType || rule.newEdge2 === identifyingType)) {
+                    if (targetTypes[legacyEdgeName]) {
+                        result = scanMap(targetTypes[legacyEdgeName].properties);
+                        if (result) break;
+                    }
+                }
+            }
+            if (!result) {
+                const unionRule = mappings[identifyingType];
+                if (unionRule && unionRule.kind === 'unionRT') {
+                    for (const legacyEdgeName of unionRule.legacyEdges) {
+                        if (targetTypes[legacyEdgeName]) {
+                            result = scanMap(targetTypes[legacyEdgeName].properties);
+                            if (result) break;
+                        }
                     }
                 }
             }
@@ -552,6 +706,7 @@ export class SchemaLensEngine {
                 }
 
                 const { appKey, dbKey } = engine.getAppKeyAndDbKey(identifyingType, prop, changeType);
+                if (appKey !== prop) return undefined;
                 const hasRawProp = dbKey in target;
                 const lens = engine.getPropertyLens(identifyingType, appKey, changeType);
                 if (!lens) return undefined;
@@ -593,14 +748,51 @@ export class SchemaLensEngine {
                             }
                         }
                     }
+                    const unionRule = mappings[identifyingType];
+                    if (unionRule && unionRule.kind === 'union') {
+                        for (const legacyTypeName of unionRule.legacyTypes) {
+                            if (targetTypes[legacyTypeName]) {
+                                const legacyPropertyMap = targetTypes[legacyTypeName].properties || {};
+                                for (const [k, v] of Object.entries(legacyPropertyMap)) {
+                                    if ((v as any).name) appKeys.add((v as any).name);
+                                }
+                            }
+                        }
+                    }
                 }
-
+                if (changeType === "RelationshipType") {
+                    const mappings = engine.cachedSchema.schema_mappings || {};
+                    for (const [legacyEdgeName, splitRule] of Object.entries(mappings)) {
+                        const rule = splitRule as any;
+                        if (rule.kind === 'splitRT' && (rule.newEdge1 === identifyingType || rule.newEdge2 === identifyingType)) {
+                            if (targetTypes[legacyEdgeName]) {
+                                const legacyPropertyMap = targetTypes[legacyEdgeName].properties || {};
+                                for (const [k, v] of Object.entries(legacyPropertyMap)) {
+                                    if ((v as any).name) appKeys.add((v as any).name);
+                                }
+                            }
+                        }
+                    }
+                    const unionRule = mappings[identifyingType];
+                    if (unionRule && unionRule.kind === 'unionRT') {
+                        for (const legacyEdgeName of unionRule.legacyEdges) {
+                            if (targetTypes[legacyEdgeName]) {
+                                const legacyPropertyMap = targetTypes[legacyEdgeName].properties || {};
+                                for (const [k, v] of Object.entries(legacyPropertyMap)) {
+                                    if ((v as any).name) appKeys.add((v as any).name);
+                                }
+                            }
+                        }
+                    }
+                }
                 const result = Array.from(appKeys);
                 return result;
             },
             getOwnPropertyDescriptor(target, prop) {
                 if (typeof prop !== 'string' || prop.startsWith('__')) return undefined;
-                const lens = engine.getPropertyLens(identifyingType, prop, changeType);
+                const { appKey } = engine.getAppKeyAndDbKey(identifyingType, prop, changeType);
+                if (appKey !== prop) return undefined;
+                const lens = engine.getPropertyLens(identifyingType, appKey, changeType);
                 if (!lens) return undefined;
                 return {
                     enumerable: true,
@@ -610,7 +802,9 @@ export class SchemaLensEngine {
             },
             has(target, prop) {
                 if (typeof prop !== 'string' || prop.startsWith('__')) return false;
-                return engine.getPropertyLens(identifyingType, prop, changeType) !== undefined;
+                const { appKey } = engine.getAppKeyAndDbKey(identifyingType, prop, changeType);
+                if (appKey !== prop) return false;
+                return engine.getPropertyLens(identifyingType, appKey, changeType) !== undefined;
             }
         });
     }
@@ -668,7 +862,15 @@ export class SchemaLensEngine {
             appProps: options.lazy ? this.decodeAndFilterPropertiesLazy(node.type, node.props, 'NodeType') : this.decodeAndFilterProperties(node.type, node.props, 'NodeType')
         }));
 
-        const validEdges = this.filterAllowedRelationships(rawEdges, edge => edge.type).filter(edge => validNodeIds.has(edge.sourceId) && validNodeIds.has(edge.targetId));
+        const resolvedEdges = rawEdges.map(edge => {
+            const activeType = this.resolveActiveEdgeType(edge.type, edge.props);
+            return {
+                ...edge,
+                type: activeType
+            };
+        });
+
+        const validEdges = this.filterAllowedRelationships(resolvedEdges, edge => edge.type).filter(edge => validNodeIds.has(edge.sourceId) && validNodeIds.has(edge.targetId));
 
         const lensedEdges = validEdges.map(edge => ({
             ...edge,
@@ -677,6 +879,18 @@ export class SchemaLensEngine {
 
         return { lensedNodes, lensedEdges };
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
     public lensNode(rawNode: { id: string; type: string; props: Record<string, any> } ): { id: string; rawType: string; type: string; appProps: Record<string, any> } | null {
         if (!this.cachedSchema) this.refreshCache();
@@ -688,9 +902,10 @@ export class SchemaLensEngine {
 
     public lensEdge(rawEdge: { id: string; type: string; sourceId: string; targetId: string; props: Record<string, any> }, sResType: string, tResType: string, ): { id: string; type: string; sourceId: string; targetId: string; appProps: Record<string, any> } | null {
         if (!this.cachedSchema) this.refreshCache();
-        if (!this.isConnectionAllowed(rawEdge.type, sResType, tResType)) return null;
-        const appProps = this.decodeAndFilterPropertiesLazy(rawEdge.type, rawEdge.props, 'RelationshipType');
-        return { id: rawEdge.id, type: rawEdge.type, sourceId: rawEdge.sourceId, targetId: rawEdge.targetId, appProps };
+        const resolved = this.resolveActiveEdgeType(rawEdge.type, rawEdge.props);
+        if (!this.isConnectionAllowed(resolved, sResType, tResType)) return null;
+        const appProps = this.decodeAndFilterPropertiesLazy(resolved, rawEdge.props, 'RelationshipType');
+        return { id: rawEdge.id, type: resolved, sourceId: rawEdge.sourceId, targetId: rawEdge.targetId, appProps };
     }
 
     public *traverse( db: PropertyGraph, doc: Y.Doc, startNodeIds: string[], opts: { edgeTypes?: string[]; targetTypes?: string[]; maxDepth?: number; direction?: 'out' | 'in' | 'both'; predicate?: (node: { id: string; rawType: string; type: string; appProps: Record<string, any> }) => boolean; } = {},

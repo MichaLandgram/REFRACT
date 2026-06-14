@@ -329,7 +329,7 @@ function benchSplitRT(persons: NormPerson[]): Omit<RQ2_2_Result, 'smo' | 'rep'> 
     const N = persons.length;
     const nt1 = `RT_${randomSuffix()}`, nt2 = `RT_${randomSuffix()}`;
     const { sc, le } = freshSchema();
-    sc.SMO_splitRelationshipType({ oldName: 'KNOWS', newName1: nt1, newName2: nt2 });
+    sc.SMO_splitRelationshipType({ legacyType: 'KNOWS', newType1: nt1, newType2: nt2 });
     le.refreshCache();
     const cambriaOps: LensSource = [cambriaAddOp({ name: 'edgeType', type: 'string', default: nt1 })];
 
@@ -366,7 +366,7 @@ function benchUnionRT(persons: NormPerson[]): Omit<RQ2_2_Result, 'smo' | 'rep'> 
     const secondRT = `RT_${randomSuffix()}`, newRT = `RT_${randomSuffix()}`;
     const { sc, le } = freshSchema();
     sc.SMO_addRelationshipType(secondRT, 'person', 'person', {});
-    sc.SMO_unionRelationshipTypes({ oldLabel1: 'KNOWS', oldLabel2: secondRT, newLabel: newRT });
+    sc.SMO_unionRelationshipTypes({ newType: newRT, legacyTypes: ['KNOWS', secondRT], writeDefault: secondRT });
     le.refreshCache();
     const cambriaOps: LensSource = [cambriaAddOp({ name: '__edgeUnionType', type: 'string', default: newRT })];
 

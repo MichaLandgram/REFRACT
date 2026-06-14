@@ -368,7 +368,9 @@ function benchSplitRT(persons: Record<string, any>[], edges: Edge[]): Omit<RQ1_2
     const newType1 = `RT_${randomSuffix()}`, newType2 = `RT_${randomSuffix()}`;
 
     const { smoMs, lensGenMs, lazyReadyMs } = measureREFRACT(sc, le, () =>
-        sc.SMO_splitRelationshipType({ oldName: 'KNOWS', newName1: newType1, newName2: newType2 }));
+        sc.SMO_splitRelationshipType({
+            legacyType: 'KNOWS', newType1, newType2
+         }));
 
     const { cambriaSmoMs, cambriaReadyMs } = cambriaSMO([
         cambriaAddOp({ name: 'edgeType', type: 'string', default: newType1 })
@@ -412,7 +414,9 @@ function benchUnionRT(persons: Record<string, any>[], edges: Edge[]): Omit<RQ1_2
     sc.SMO_addRelationshipType(secondRT, 'person', 'person', {});
 
     const { smoMs, lensGenMs, lazyReadyMs } = measureREFRACT(sc, le, () =>
-        sc.SMO_unionRelationshipTypes({ oldLabel1: 'KNOWS', oldLabel2: secondRT, newLabel: newRT }));
+        sc.SMO_unionRelationshipTypes({ 
+            newType: newRT, legacyTypes: ['KNOWS', secondRT], writeDefault: secondRT
+         }));
 
     const { cambriaSmoMs, cambriaReadyMs } = cambriaSMO([
         cambriaAddOp({ name: '__edgeUnionType', type: 'string', default: newRT })

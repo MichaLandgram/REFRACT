@@ -775,21 +775,21 @@ export class Schema_v1 {
         });
     }
 
-    public SMO_splitRelationshipType({ oldName, newName1, newName2 }: { oldName: string, newName1: string, newName2: string }) {
+    public SMO_splitRelationshipType({ legacyType, newType1, newType2 }: { legacyType: string, newType1: string, newType2: string }) {
         this.doc.transact(() => {
-            this.schemaMappings.set(oldName, {
+            this.schemaMappings.set(legacyType, {
                 kind: 'splitRT',
-                legacyEdge: oldName,
-                newEdge1: newName1,
-                newEdge2: newName2,
+                legacyEdge: legacyType,
+                newEdge1: newType1,
+                newEdge2: newType2,
             });
 
-            const oldRT = this.relationshipTypes.get(oldName);
+            const oldRT = this.relationshipTypes.get(legacyType);
             const sLabel  = oldRT ? this.getRelationshipTypeLabelName(oldRT, 'sourceNodeLabel') : 'person';
             const tLabel  = oldRT ? this.getRelationshipTypeLabelName(oldRT, 'targetNodeLabel') : 'person';
             const properties = oldRT ? this.getRelationshipTypeProperties(oldRT) : {};
 
-            [newName1, newName2].forEach(newName => {
+            [newType1, newType2].forEach(newName => {
                 if (!this.relationshipTypes.has(newName)) {
                     this.addRelationshipType({
                         IdenifyingEdge: newName,
@@ -855,17 +855,17 @@ export class Schema_v1 {
         });
     }
 
-    public SMO_unionRelationshipTypes({ oldLabel1, oldLabel2, newLabel }: { oldLabel1: string, oldLabel2: string, newLabel: string }) {
+    public SMO_unionRelationshipTypes({ newType, legacyTypes, writeDefault }: { newType: string; legacyTypes: string[]; writeDefault: string }) {
         this.doc.transact(() => {
-            this.schemaMappings.set(newLabel, {
+            this.schemaMappings.set(newType, {
                 kind: 'unionRT',
-                newEdge: newLabel,
-                legacyEdges: [oldLabel1, oldLabel2],
+                newEdge: newType,
+                legacyEdges: legacyTypes,
             });
 
-            if (!this.relationshipTypes.has(newLabel)) {
-                const rt1 = this.relationshipTypes.get(oldLabel1);
-                const rt2 = this.relationshipTypes.get(oldLabel2);
+            if (!this.relationshipTypes.has(newType)) {
+                const rt1 = this.relationshipTypes.get(legacyTypes[0]);
+                const rt2 = this.relationshipTypes.get(legacyTypes[1]);
 
                 const srcLabel = rt1 ? this.getRelationshipTypeLabelName(rt1, 'sourceNodeLabel') : 'person';
                 const tgtLabel = rt1 ? this.getRelationshipTypeLabelName(rt1, 'targetNodeLabel') : 'person';
@@ -875,7 +875,7 @@ export class Schema_v1 {
                 if (rt2) Object.assign(properties, this.getRelationshipTypeProperties(rt2));
 
                 this.addRelationshipType({
-                    IdenifyingEdge: newLabel,
+                    IdenifyingEdge: newType,
                     sourceNodeLabel: srcLabel,
                     targetNodeLabel: tgtLabel,
                     properties,
