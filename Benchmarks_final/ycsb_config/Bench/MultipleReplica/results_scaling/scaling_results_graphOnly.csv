@@ -1,0 +1,17 @@
+system,operation,replicas,run,combined_throughput_ops_sec,avg_latency_us,p99_latency_us
+graphOnly,INSERT,1,1,1945.84,465.56,2119
+graphOnly,INSERT,2,1,3668.75,496.42,2157
+graphOnly,INSERT,3,1,4514.34,614.95,3649
+graphOnly,INSERT,4,1,5669.77,655.36,4039
+graphOnly,UPDATE,1,1,2096.07,427.98,1905
+graphOnly,UPDATE,2,1,4029.92,445.26,1947
+graphOnly,UPDATE,3,1,4730.81,593.84,7298.67
+graphOnly,UPDATE,4,1,6443.56,581.78,6245.5
+graphOnly,READ,1,1,2122.39,423.15,1898
+graphOnly,READ,2,1,4165.28,434.72,1942.5
+graphOnly,READ,3,1,5010.95,554.29,5108.33
+graphOnly,READ,4,1,6830.18,538.66,3201.5
+graphOnly,DELETE,1,1,1111.42,851.35,2277
+graphOnly,DELETE,2,1,1983.58,959.49,2559
+graphOnly,DELETE,3,1,2307.72,1249.87,3351
+graphOnly,DELETE,4,1,2453.56,1595.41,4106

@@ -38,8 +38,8 @@ export type VisibleNode = {
 export type VisibleEdge = {
     id: EdgeId;
     type: string;
-    sourceId: NodeId;
-    targetId: NodeId;
+    sourceId: string;
+    targetId: string;
     props: EdgeProps;
 };
 

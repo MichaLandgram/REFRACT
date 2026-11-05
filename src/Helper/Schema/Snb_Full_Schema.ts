@@ -15,7 +15,8 @@ export const snbFullSchemaDef: SchemaDefinition = {
                 locationIP: 'string',
                 browserUsed: 'string',
                 email: 'string',
-                language: 'string'
+                language: 'string',
+                test: 'string'
             }
         },
         {
@@ -91,7 +92,8 @@ export const snbFullSchemaDef: SchemaDefinition = {
             sourceNodeLabel: 'person',
             targetNodeLabel: 'person',
             properties: {
-                creationDate: 'string'
+                creationDate: 'string',
+                since: 'number',
             }
         },
         {

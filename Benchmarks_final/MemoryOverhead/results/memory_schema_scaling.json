@@ -1,0 +1,74 @@
+{
+  "results": [
+    {
+      "scalingDimension": "schema",
+      "N": 1000,
+      "E": 2023,
+      "schemaSize": 100,
+      "yjsBytes_graphOnly": 1448792,
+      "yjsBytes_full": 1508306,
+      "yjsBytes_overhead": 59514,
+      "yjsBytes_overheadPct": 4.107836045477888
+    },
+    {
+      "scalingDimension": "schema",
+      "N": 1000,
+      "E": 2023,
+      "schemaSize": 250,
+      "yjsBytes_graphOnly": 1448792,
+      "yjsBytes_full": 1597142,
+      "yjsBytes_overhead": 148350,
+      "yjsBytes_overheadPct": 10.23956509975207
+    },
+    {
+      "scalingDimension": "schema",
+      "N": 1000,
+      "E": 2023,
+      "schemaSize": 500,
+      "yjsBytes_graphOnly": 1448792,
+      "yjsBytes_full": 1745053,
+      "yjsBytes_overhead": 296261,
+      "yjsBytes_overheadPct": 20.448829093479258
+    },
+    {
+      "scalingDimension": "schema",
+      "N": 1000,
+      "E": 2023,
+      "schemaSize": 1000,
+      "yjsBytes_graphOnly": 1448792,
+      "yjsBytes_full": 2046492,
+      "yjsBytes_overhead": 597700,
+      "yjsBytes_overheadPct": 41.25505938740689
+    },
+    {
+      "scalingDimension": "schema",
+      "N": 1000,
+      "E": 2023,
+      "schemaSize": 2500,
+      "yjsBytes_graphOnly": 1448792,
+      "yjsBytes_full": 2899676,
+      "yjsBytes_overhead": 1450884,
+      "yjsBytes_overheadPct": 100.14439615900694
+    },
+    {
+      "scalingDimension": "schema",
+      "N": 1000,
+      "E": 2023,
+      "schemaSize": 5000,
+      "yjsBytes_graphOnly": 1448792,
+      "yjsBytes_full": 4511554,
+      "yjsBytes_overhead": 3062762,
+      "yjsBytes_overheadPct": 211.401084489699
+    },
+    {
+      "scalingDimension": "schema",
+      "N": 1000,
+      "E": 2023,
+      "schemaSize": 10000,
+      "yjsBytes_graphOnly": 1448792,
+      "yjsBytes_full": 7600884,
+      "yjsBytes_overhead": 6152092,
+      "yjsBytes_overheadPct": 424.6359725895781
+    }
+  ]
+}

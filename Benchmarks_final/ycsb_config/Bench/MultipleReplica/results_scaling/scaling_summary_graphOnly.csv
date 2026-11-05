@@ -1,0 +1,17 @@
+system,operation,replicas,runs,mean_throughput,sd_throughput,mean_avg_latency,sd_avg_latency,mean_p99_latency,sd_p99_latency
+graphOnly,INSERT,1,1,1945.84,0,465.56,0,2119,0
+graphOnly,INSERT,2,1,3668.75,0,496.42,0,2157,0
+graphOnly,INSERT,3,1,4514.34,0,614.95,0,3649,0
+graphOnly,INSERT,4,1,5669.77,0,655.36,0,4039,0
+graphOnly,UPDATE,1,1,2096.07,0,427.98,0,1905,0
+graphOnly,UPDATE,2,1,4029.92,0,445.26,0,1947,0
+graphOnly,UPDATE,3,1,4730.81,0,593.84,0,7298.67,0
+graphOnly,UPDATE,4,1,6443.56,0,581.78,0,6245.5,0
+graphOnly,READ,1,1,2122.39,0,423.15,0,1898,0
+graphOnly,READ,2,1,4165.28,0,434.72,0,1942.5,0
+graphOnly,READ,3,1,5010.95,0,554.29,0,5108.33,0
+graphOnly,READ,4,1,6830.18,0,538.66,0,3201.5,0
+graphOnly,DELETE,1,1,1111.42,0,851.35,0,2277,0
+graphOnly,DELETE,2,1,1983.58,0,959.49,0,2559,0
+graphOnly,DELETE,3,1,2307.72,0,1249.87,0,3351,0
+graphOnly,DELETE,4,1,2453.56,0,1595.41,0,4106,0

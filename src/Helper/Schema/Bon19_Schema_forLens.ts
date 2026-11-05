@@ -29,7 +29,7 @@ export const bon19SchemaDef: SchemaDefinition = {
             sourceNodeLabel: 'person',
             targetNodeLabel: 'person',
             properties: {
-                since: 'string'
+                since: 'number'
             }
         },
         {

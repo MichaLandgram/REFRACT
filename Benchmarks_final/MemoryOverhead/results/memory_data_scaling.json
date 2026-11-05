@@ -1,0 +1,74 @@
+{
+  "results": [
+    {
+      "scalingDimension": "data",
+      "N": 100,
+      "E": 17,
+      "schemaSize": 8,
+      "yjsBytes_graphOnly": 76048,
+      "yjsBytes_full": 88362,
+      "yjsBytes_overhead": 12314,
+      "yjsBytes_overheadPct": 16.192404796970333
+    },
+    {
+      "scalingDimension": "data",
+      "N": 250,
+      "E": 125,
+      "schemaSize": 8,
+      "yjsBytes_graphOnly": 219635,
+      "yjsBytes_full": 230832,
+      "yjsBytes_overhead": 11197,
+      "yjsBytes_overheadPct": 5.098003505816468
+    },
+    {
+      "scalingDimension": "data",
+      "N": 500,
+      "E": 528,
+      "schemaSize": 8,
+      "yjsBytes_graphOnly": 526347,
+      "yjsBytes_full": 543572,
+      "yjsBytes_overhead": 17225,
+      "yjsBytes_overheadPct": 3.2725559374329105
+    },
+    {
+      "scalingDimension": "data",
+      "N": 1000,
+      "E": 2023,
+      "schemaSize": 8,
+      "yjsBytes_graphOnly": 1448792,
+      "yjsBytes_full": 1459989,
+      "yjsBytes_overhead": 11197,
+      "yjsBytes_overheadPct": 0.7728507611858707
+    },
+    {
+      "scalingDimension": "data",
+      "N": 2500,
+      "E": 9899,
+      "schemaSize": 8,
+      "yjsBytes_graphOnly": 5374918,
+      "yjsBytes_full": 5386115,
+      "yjsBytes_overhead": 11197,
+      "yjsBytes_overheadPct": 0.20831945715264868
+    },
+    {
+      "scalingDimension": "data",
+      "N": 5000,
+      "E": 31588,
+      "schemaSize": 8,
+      "yjsBytes_graphOnly": 14880625,
+      "yjsBytes_full": 14891822,
+      "yjsBytes_overhead": 11197,
+      "yjsBytes_overheadPct": 0.07524549540089882
+    },
+    {
+      "scalingDimension": "data",
+      "N": 10000,
+      "E": 99210,
+      "schemaSize": 8,
+      "yjsBytes_graphOnly": 42038890,
+      "yjsBytes_full": 42050087,
+      "yjsBytes_overhead": 11197,
+      "yjsBytes_overheadPct": 0.026634861196382684
+    }
+  ]
+}

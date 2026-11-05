@@ -1,0 +1,30 @@
+{
+  "result": {
+    "N": 1000,
+    "E": 2023,
+    "stage_empty": {
+      "yjsBytes": 2,
+      "heap": 11520
+    },
+    "stage_schemaOnly": {
+      "yjsBytes": 11207,
+      "heap": 262536
+    },
+    "stage_graphOnly": {
+      "yjsBytes": 1448792,
+      "heap": 9796040
+    },
+    "stage_fullStack": {
+      "yjsBytes": 1471538,
+      "heap": 8634520
+    },
+    "stage_evolved": {
+      "yjsBytes": 1471538,
+      "heap": 8558936
+    },
+    "stage_warmedCache": {
+      "yjsBytes": 1471538,
+      "heap": 8690096
+    }
+  }
+}

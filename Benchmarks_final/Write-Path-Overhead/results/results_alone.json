@@ -1,0 +1,724 @@
+{
+  "results": [
+    {
+      "nodes": 10,
+      "edges": 1,
+      "time": 0.2041,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 10,
+      "edges": 1,
+      "time": 0.18625,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 10,
+      "edges": 1,
+      "time": 0.17359999999999998,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 10,
+      "edges": 1,
+      "time": 0.1643,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 10,
+      "edges": 1,
+      "time": 0.1904,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 10,
+      "edges": 1,
+      "time": 0.17355,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 20,
+      "edges": 1,
+      "time": 0.1799,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 20,
+      "edges": 1,
+      "time": 0.1846,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 20,
+      "edges": 1,
+      "time": 0.1625,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 20,
+      "edges": 1,
+      "time": 0.1602,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 20,
+      "edges": 1,
+      "time": 0.1758,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 20,
+      "edges": 1,
+      "time": 0.1817,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 30,
+      "edges": 2,
+      "time": 0.25155,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 30,
+      "edges": 2,
+      "time": 0.2479,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 30,
+      "edges": 2,
+      "time": 0.21425,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 30,
+      "edges": 2,
+      "time": 0.23420000000000002,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 30,
+      "edges": 2,
+      "time": 0.24445,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 30,
+      "edges": 2,
+      "time": 0.22199999999999998,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 40,
+      "edges": 9,
+      "time": 0.23525000000000001,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 40,
+      "edges": 9,
+      "time": 0.2465,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 40,
+      "edges": 9,
+      "time": 0.2001,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 40,
+      "edges": 9,
+      "time": 0.214,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 40,
+      "edges": 9,
+      "time": 0.2434,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 40,
+      "edges": 9,
+      "time": 0.23335,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 50,
+      "edges": 23,
+      "time": 0.25295,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 50,
+      "edges": 23,
+      "time": 0.23249999999999998,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 50,
+      "edges": 23,
+      "time": 0.19115,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 50,
+      "edges": 23,
+      "time": 0.21025,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 50,
+      "edges": 23,
+      "time": 0.22845,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 50,
+      "edges": 23,
+      "time": 0.2351,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 60,
+      "edges": 37,
+      "time": 0.2304,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 60,
+      "edges": 37,
+      "time": 0.2484,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 60,
+      "edges": 37,
+      "time": 0.19505,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 60,
+      "edges": 37,
+      "time": 0.20079999999999998,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 60,
+      "edges": 37,
+      "time": 0.2272,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 60,
+      "edges": 37,
+      "time": 0.22625,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 70,
+      "edges": 46,
+      "time": 0.24795,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 70,
+      "edges": 46,
+      "time": 0.2301,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 70,
+      "edges": 46,
+      "time": 0.2051,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 70,
+      "edges": 46,
+      "time": 0.2074,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 70,
+      "edges": 46,
+      "time": 0.2368,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 70,
+      "edges": 46,
+      "time": 0.21725,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 80,
+      "edges": 60,
+      "time": 0.22995,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 80,
+      "edges": 60,
+      "time": 0.21705000000000002,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 80,
+      "edges": 60,
+      "time": 0.17975000000000002,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 80,
+      "edges": 60,
+      "time": 0.1903,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 80,
+      "edges": 60,
+      "time": 0.22165,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 80,
+      "edges": 60,
+      "time": 0.2247,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 90,
+      "edges": 72,
+      "time": 0.24155,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 90,
+      "edges": 72,
+      "time": 0.24465,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 90,
+      "edges": 72,
+      "time": 0.18280000000000002,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 90,
+      "edges": 72,
+      "time": 0.21165,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 90,
+      "edges": 72,
+      "time": 0.2311,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 90,
+      "edges": 72,
+      "time": 0.22244999999999998,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 100,
+      "edges": 78,
+      "time": 0.21455,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 100,
+      "edges": 78,
+      "time": 0.2084,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 100,
+      "edges": 78,
+      "time": 0.18819999999999998,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 100,
+      "edges": 78,
+      "time": 0.19445,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 100,
+      "edges": 78,
+      "time": 0.23395,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 100,
+      "edges": 78,
+      "time": 0.21325,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 110,
+      "edges": 91,
+      "time": 0.24180000000000001,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 110,
+      "edges": 91,
+      "time": 0.22744999999999999,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 110,
+      "edges": 91,
+      "time": 0.2008,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 110,
+      "edges": 91,
+      "time": 0.213,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 110,
+      "edges": 91,
+      "time": 0.24505,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 110,
+      "edges": 91,
+      "time": 0.21925,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 120,
+      "edges": 119,
+      "time": 0.2639,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 120,
+      "edges": 119,
+      "time": 0.24425,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 120,
+      "edges": 119,
+      "time": 0.21005000000000001,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 120,
+      "edges": 119,
+      "time": 0.22385,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 120,
+      "edges": 119,
+      "time": 0.25429999999999997,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 120,
+      "edges": 119,
+      "time": 0.22215000000000001,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 130,
+      "edges": 139,
+      "time": 0.26249999999999996,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 130,
+      "edges": 139,
+      "time": 0.25545,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 130,
+      "edges": 139,
+      "time": 0.20555,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 130,
+      "edges": 139,
+      "time": 0.21860000000000002,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 130,
+      "edges": 139,
+      "time": 0.26049999999999995,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 130,
+      "edges": 139,
+      "time": 0.24175,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 140,
+      "edges": 162,
+      "time": 0.27235,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 140,
+      "edges": 162,
+      "time": 0.24945,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 140,
+      "edges": 162,
+      "time": 0.22349999999999998,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 140,
+      "edges": 162,
+      "time": 0.22039999999999998,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 140,
+      "edges": 162,
+      "time": 0.2566,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 140,
+      "edges": 162,
+      "time": 0.2309,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 150,
+      "edges": 187,
+      "time": 0.27465,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 150,
+      "edges": 187,
+      "time": 0.27649999999999997,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 150,
+      "edges": 187,
+      "time": 0.22165,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 150,
+      "edges": 187,
+      "time": 0.23670000000000002,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 150,
+      "edges": 187,
+      "time": 0.27745,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 150,
+      "edges": 187,
+      "time": 0.2514,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 160,
+      "edges": 201,
+      "time": 0.26725,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 160,
+      "edges": 201,
+      "time": 0.26635,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 160,
+      "edges": 201,
+      "time": 0.25055,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 160,
+      "edges": 201,
+      "time": 0.26495,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 160,
+      "edges": 201,
+      "time": 0.28165,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 160,
+      "edges": 201,
+      "time": 0.27259999999999995,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 170,
+      "edges": 218,
+      "time": 0.40345,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 170,
+      "edges": 218,
+      "time": 0.25360000000000005,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 170,
+      "edges": 218,
+      "time": 0.2202,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 170,
+      "edges": 218,
+      "time": 0.22249999999999998,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 170,
+      "edges": 218,
+      "time": 0.2572,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 170,
+      "edges": 218,
+      "time": 0.24614999999999998,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 180,
+      "edges": 232,
+      "time": 0.26465,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 180,
+      "edges": 232,
+      "time": 0.26349999999999996,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 180,
+      "edges": 232,
+      "time": 0.21465,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 180,
+      "edges": 232,
+      "time": 0.2205,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 180,
+      "edges": 232,
+      "time": 0.25155,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 180,
+      "edges": 232,
+      "time": 0.24385,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 190,
+      "edges": 243,
+      "time": 0.26395,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 190,
+      "edges": 243,
+      "time": 0.25785,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 190,
+      "edges": 243,
+      "time": 0.24974999999999997,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 190,
+      "edges": 243,
+      "time": 0.2403,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 190,
+      "edges": 243,
+      "time": 0.2585,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 190,
+      "edges": 243,
+      "time": 0.25085,
+      "interaction": "removeR"
+    },
+    {
+      "nodes": 200,
+      "edges": 258,
+      "time": 0.2649,
+      "interaction": "createN"
+    },
+    {
+      "nodes": 200,
+      "edges": 258,
+      "time": 0.2541,
+      "interaction": "createR"
+    },
+    {
+      "nodes": 200,
+      "edges": 258,
+      "time": 0.2187,
+      "interaction": "updateN"
+    },
+    {
+      "nodes": 200,
+      "edges": 258,
+      "time": 0.23249999999999998,
+      "interaction": "updateR"
+    },
+    {
+      "nodes": 200,
+      "edges": 258,
+      "time": 0.2559,
+      "interaction": "removeN"
+    },
+    {
+      "nodes": 200,
+      "edges": 258,
+      "time": 0.24595,
+      "interaction": "removeR"
+    }
+  ]
+}

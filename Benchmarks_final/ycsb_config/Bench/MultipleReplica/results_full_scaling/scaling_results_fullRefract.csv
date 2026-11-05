@@ -1,0 +1,17 @@
+system,operation,replicas,run,combined_throughput_ops_sec,avg_latency_us,p99_latency_us
+fullRefract,INSERT,1,1,1907.79,474.47,2129
+fullRefract,INSERT,2,1,3573.7,511.57,2162
+fullRefract,INSERT,3,1,4341.95,638.73,3678.33
+fullRefract,INSERT,4,1,5555.37,669.41,4088.5
+fullRefract,UPDATE,1,1,1598.93,577.83,2227
+fullRefract,UPDATE,2,1,2945.46,627.58,3369
+fullRefract,UPDATE,3,1,4113.27,677.25,6059.67
+fullRefract,UPDATE,4,1,5174.88,716.59,4262.5
+fullRefract,READ,1,1,1960.14,463.28,2051
+fullRefract,READ,2,1,2982.69,621.17,2998
+fullRefract,READ,3,1,4049.85,685.52,3695.67
+fullRefract,READ,4,1,5997.03,609.81,3230.5
+fullRefract,DELETE,1,1,1029.16,922.1,2881
+fullRefract,DELETE,2,1,1983.99,958.11,2793
+fullRefract,DELETE,3,1,2175.44,1327.88,3566.33
+fullRefract,DELETE,4,1,2414.16,1606.04,3989.5

@@ -1,0 +1,394 @@
+{
+  "results": [
+    {
+      "smo": "renameL",
+      "N": 100,
+      "smoMs": 0.5329200000000001,
+      "lensGenMs": 0.0030199999999999997,
+      "lazyReadyMs": 0.53594,
+      "cambriaSmoMs": 1.38612,
+      "cambriaReadyMs": 1.4138600000000001,
+      "eagerMigrationMs": 0.61534
+    },
+    {
+      "smo": "removePk",
+      "N": 100,
+      "smoMs": 0.65288,
+      "lensGenMs": 0.0021800000000000005,
+      "lazyReadyMs": 0.65506,
+      "cambriaSmoMs": 1.5777,
+      "cambriaReadyMs": 1.61732,
+      "eagerMigrationMs": 1.3944800000000002
+    },
+    {
+      "smo": "splitNT",
+      "N": 100,
+      "smoMs": 1.3842400000000001,
+      "lensGenMs": 0.00216,
+      "lazyReadyMs": 1.3863999999999999,
+      "cambriaSmoMs": 1.4733999999999998,
+      "cambriaReadyMs": 1.50592,
+      "eagerMigrationMs": 2.0332999999999997
+    },
+    {
+      "smo": "renameL",
+      "N": 500,
+      "smoMs": 0.6572399999999999,
+      "lensGenMs": 0.00392,
+      "lazyReadyMs": 0.6611600000000001,
+      "cambriaSmoMs": 1.8595799999999998,
+      "cambriaReadyMs": 1.8897000000000002,
+      "eagerMigrationMs": 5.67606
+    },
+    {
+      "smo": "removePk",
+      "N": 500,
+      "smoMs": 0.80236,
+      "lensGenMs": 0.00222,
+      "lazyReadyMs": 0.80458,
+      "cambriaSmoMs": 1.5238399999999999,
+      "cambriaReadyMs": 1.5619,
+      "eagerMigrationMs": 5.78646
+    },
+    {
+      "smo": "splitNT",
+      "N": 500,
+      "smoMs": 1.40258,
+      "lensGenMs": 0.0023799999999999997,
+      "lazyReadyMs": 1.4049599999999998,
+      "cambriaSmoMs": 1.88402,
+      "cambriaReadyMs": 1.91216,
+      "eagerMigrationMs": 8.904140000000002
+    },
+    {
+      "smo": "renameL",
+      "N": 1000,
+      "smoMs": 0.71948,
+      "lensGenMs": 0.00246,
+      "lazyReadyMs": 0.7219399999999999,
+      "cambriaSmoMs": 1.5634000000000001,
+      "cambriaReadyMs": 1.59294,
+      "eagerMigrationMs": 14.75982
+    },
+    {
+      "smo": "removePk",
+      "N": 1000,
+      "smoMs": 0.59064,
+      "lensGenMs": 0.00256,
+      "lazyReadyMs": 0.5932000000000001,
+      "cambriaSmoMs": 1.82664,
+      "cambriaReadyMs": 1.8621200000000002,
+      "eagerMigrationMs": 13.34142
+    },
+    {
+      "smo": "splitNT",
+      "N": 1000,
+      "smoMs": 1.1685199999999998,
+      "lensGenMs": 0.00202,
+      "lazyReadyMs": 1.17054,
+      "cambriaSmoMs": 1.27894,
+      "cambriaReadyMs": 1.3089600000000001,
+      "eagerMigrationMs": 20.0274
+    },
+    {
+      "smo": "renameL",
+      "N": 1500,
+      "smoMs": 0.7525000000000001,
+      "lensGenMs": 0.00378,
+      "lazyReadyMs": 0.75628,
+      "cambriaSmoMs": 1.5928999999999998,
+      "cambriaReadyMs": 1.6229600000000002,
+      "eagerMigrationMs": 28.29656
+    },
+    {
+      "smo": "removePk",
+      "N": 1500,
+      "smoMs": 0.7011000000000001,
+      "lensGenMs": 0.0022199999999999998,
+      "lazyReadyMs": 0.70332,
+      "cambriaSmoMs": 1.37426,
+      "cambriaReadyMs": 1.41148,
+      "eagerMigrationMs": 20.19782
+    },
+    {
+      "smo": "splitNT",
+      "N": 1500,
+      "smoMs": 1.26996,
+      "lensGenMs": 0.0023399999999999996,
+      "lazyReadyMs": 1.2723,
+      "cambriaSmoMs": 1.5207000000000002,
+      "cambriaReadyMs": 1.54896,
+      "eagerMigrationMs": 30.228139999999996
+    },
+    {
+      "smo": "renameL",
+      "N": 2000,
+      "smoMs": 0.76318,
+      "lensGenMs": 0.00386,
+      "lazyReadyMs": 0.76704,
+      "cambriaSmoMs": 1.65652,
+      "cambriaReadyMs": 1.68322,
+      "eagerMigrationMs": 42.568799999999996
+    },
+    {
+      "smo": "removePk",
+      "N": 2000,
+      "smoMs": 0.61772,
+      "lensGenMs": 0.00252,
+      "lazyReadyMs": 0.6202400000000001,
+      "cambriaSmoMs": 1.65518,
+      "cambriaReadyMs": 1.6918399999999998,
+      "eagerMigrationMs": 23.46462
+    },
+    {
+      "smo": "splitNT",
+      "N": 2000,
+      "smoMs": 1.2701999999999998,
+      "lensGenMs": 0.0023799999999999997,
+      "lazyReadyMs": 1.27258,
+      "cambriaSmoMs": 1.5092400000000001,
+      "cambriaReadyMs": 1.5381600000000002,
+      "eagerMigrationMs": 39.013999999999996
+    },
+    {
+      "smo": "renameL",
+      "N": 2500,
+      "smoMs": 0.8329599999999999,
+      "lensGenMs": 0.004700000000000001,
+      "lazyReadyMs": 0.83766,
+      "cambriaSmoMs": 1.9850999999999999,
+      "cambriaReadyMs": 2.0117400000000005,
+      "eagerMigrationMs": 64.97862
+    },
+    {
+      "smo": "removePk",
+      "N": 2500,
+      "smoMs": 0.71194,
+      "lensGenMs": 0.0036399999999999996,
+      "lazyReadyMs": 0.71558,
+      "cambriaSmoMs": 1.7023800000000002,
+      "cambriaReadyMs": 1.7441,
+      "eagerMigrationMs": 35.2818
+    },
+    {
+      "smo": "splitNT",
+      "N": 2500,
+      "smoMs": 1.35608,
+      "lensGenMs": 0.00298,
+      "lazyReadyMs": 1.35906,
+      "cambriaSmoMs": 1.39328,
+      "cambriaReadyMs": 1.4234,
+      "eagerMigrationMs": 48.911120000000004
+    },
+    {
+      "smo": "renameL",
+      "N": 3000,
+      "smoMs": 0.82864,
+      "lensGenMs": 0.00388,
+      "lazyReadyMs": 0.83252,
+      "cambriaSmoMs": 1.6631,
+      "cambriaReadyMs": 1.6929000000000003,
+      "eagerMigrationMs": 83.81826000000001
+    },
+    {
+      "smo": "removePk",
+      "N": 3000,
+      "smoMs": 0.7038399999999999,
+      "lensGenMs": 0.0030599999999999994,
+      "lazyReadyMs": 0.7068999999999999,
+      "cambriaSmoMs": 1.4455000000000002,
+      "cambriaReadyMs": 1.48624,
+      "eagerMigrationMs": 41.34054
+    },
+    {
+      "smo": "splitNT",
+      "N": 3000,
+      "smoMs": 1.19796,
+      "lensGenMs": 0.0031,
+      "lazyReadyMs": 1.20106,
+      "cambriaSmoMs": 1.4818399999999998,
+      "cambriaReadyMs": 1.51464,
+      "eagerMigrationMs": 53.05834
+    },
+    {
+      "smo": "renameL",
+      "N": 3500,
+      "smoMs": 0.7778600000000001,
+      "lensGenMs": 0.0044199999999999995,
+      "lazyReadyMs": 0.7822800000000001,
+      "cambriaSmoMs": 1.7131800000000001,
+      "cambriaReadyMs": 1.7419799999999999,
+      "eagerMigrationMs": 98.98844000000001
+    },
+    {
+      "smo": "removePk",
+      "N": 3500,
+      "smoMs": 0.69302,
+      "lensGenMs": 0.0038399999999999997,
+      "lazyReadyMs": 0.69686,
+      "cambriaSmoMs": 1.4738400000000003,
+      "cambriaReadyMs": 1.5239,
+      "eagerMigrationMs": 48.18996
+    },
+    {
+      "smo": "splitNT",
+      "N": 3500,
+      "smoMs": 1.322,
+      "lensGenMs": 0.00246,
+      "lazyReadyMs": 1.32446,
+      "cambriaSmoMs": 1.5127399999999998,
+      "cambriaReadyMs": 1.544,
+      "eagerMigrationMs": 65.56244000000001
+    },
+    {
+      "smo": "renameL",
+      "N": 4000,
+      "smoMs": 0.80046,
+      "lensGenMs": 0.004,
+      "lazyReadyMs": 0.80446,
+      "cambriaSmoMs": 1.6508800000000001,
+      "cambriaReadyMs": 1.6813600000000002,
+      "eagerMigrationMs": 118.25016000000001
+    },
+    {
+      "smo": "removePk",
+      "N": 4000,
+      "smoMs": 0.65586,
+      "lensGenMs": 0.00394,
+      "lazyReadyMs": 0.6598,
+      "cambriaSmoMs": 1.6351399999999998,
+      "cambriaReadyMs": 1.6732799999999997,
+      "eagerMigrationMs": 51.96806
+    },
+    {
+      "smo": "splitNT",
+      "N": 4000,
+      "smoMs": 1.2846,
+      "lensGenMs": 0.00206,
+      "lazyReadyMs": 1.28666,
+      "cambriaSmoMs": 1.47696,
+      "cambriaReadyMs": 1.50604,
+      "eagerMigrationMs": 77.57598
+    },
+    {
+      "smo": "renameL",
+      "N": 4500,
+      "smoMs": 0.78056,
+      "lensGenMs": 0.00332,
+      "lazyReadyMs": 0.78388,
+      "cambriaSmoMs": 1.6721799999999998,
+      "cambriaReadyMs": 1.70272,
+      "eagerMigrationMs": 148.77206
+    },
+    {
+      "smo": "removePk",
+      "N": 4500,
+      "smoMs": 0.66368,
+      "lensGenMs": 0.00392,
+      "lazyReadyMs": 0.6676,
+      "cambriaSmoMs": 1.59954,
+      "cambriaReadyMs": 1.63536,
+      "eagerMigrationMs": 61.97972000000001
+    },
+    {
+      "smo": "splitNT",
+      "N": 4500,
+      "smoMs": 1.4559,
+      "lensGenMs": 0.00318,
+      "lazyReadyMs": 1.45908,
+      "cambriaSmoMs": 1.66726,
+      "cambriaReadyMs": 1.7012999999999998,
+      "eagerMigrationMs": 91.7567
+    },
+    {
+      "smo": "renameL",
+      "N": 5000,
+      "smoMs": 0.8647199999999999,
+      "lensGenMs": 0.0046,
+      "lazyReadyMs": 0.8693200000000001,
+      "cambriaSmoMs": 1.6596,
+      "cambriaReadyMs": 1.69118,
+      "eagerMigrationMs": 180.13554
+    },
+    {
+      "smo": "removePk",
+      "N": 5000,
+      "smoMs": 0.69494,
+      "lensGenMs": 0.0036999999999999997,
+      "lazyReadyMs": 0.6986399999999999,
+      "cambriaSmoMs": 1.68486,
+      "cambriaReadyMs": 1.72388,
+      "eagerMigrationMs": 60.74490000000001
+    },
+    {
+      "smo": "splitNT",
+      "N": 5000,
+      "smoMs": 1.3462800000000001,
+      "lensGenMs": 0.0029000000000000007,
+      "lazyReadyMs": 1.34918,
+      "cambriaSmoMs": 1.5202,
+      "cambriaReadyMs": 1.55222,
+      "eagerMigrationMs": 87.43248000000001
+    },
+    {
+      "smo": "renameL",
+      "N": 7500,
+      "smoMs": 0.89666,
+      "lensGenMs": 0.016139999999999998,
+      "lazyReadyMs": 0.9128000000000001,
+      "cambriaSmoMs": 1.62852,
+      "cambriaReadyMs": 1.6601599999999999,
+      "eagerMigrationMs": 317.76502
+    },
+    {
+      "smo": "removePk",
+      "N": 7500,
+      "smoMs": 0.9026,
+      "lensGenMs": 0.014360000000000001,
+      "lazyReadyMs": 0.9169599999999999,
+      "cambriaSmoMs": 1.5155600000000002,
+      "cambriaReadyMs": 1.5535,
+      "eagerMigrationMs": 85.79639999999999
+    },
+    {
+      "smo": "splitNT",
+      "N": 7500,
+      "smoMs": 1.4635000000000002,
+      "lensGenMs": 0.013920000000000002,
+      "lazyReadyMs": 1.4774200000000002,
+      "cambriaSmoMs": 1.48724,
+      "cambriaReadyMs": 1.5169000000000001,
+      "eagerMigrationMs": 127.55520000000001
+    },
+    {
+      "smo": "renameL",
+      "N": 10000,
+      "smoMs": 0.85008,
+      "lensGenMs": 0.01552,
+      "lazyReadyMs": 0.8656,
+      "cambriaSmoMs": 1.6630800000000001,
+      "cambriaReadyMs": 1.6961600000000001,
+      "eagerMigrationMs": 506.74096
+    },
+    {
+      "smo": "removePk",
+      "N": 10000,
+      "smoMs": 1.28704,
+      "lensGenMs": 0.013980000000000001,
+      "lazyReadyMs": 1.3010199999999998,
+      "cambriaSmoMs": 1.5855599999999999,
+      "cambriaReadyMs": 1.6224800000000001,
+      "eagerMigrationMs": 119.98592000000001
+    },
+    {
+      "smo": "splitNT",
+      "N": 10000,
+      "smoMs": 1.58324,
+      "lensGenMs": 0.01406,
+      "lazyReadyMs": 1.5973,
+      "cambriaSmoMs": 1.44876,
+      "cambriaReadyMs": 1.4799,
+      "eagerMigrationMs": 178.87795999999997
+    }
+  ]
+}

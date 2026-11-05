@@ -1,0 +1,19 @@
+  createNT          REFRACT=  0.541 ms  cambria=  1.429 ms  eager=    0.00 ms  vs_cambria=  2.6x  vs_eager=n/a (no eager)
+  createRT          REFRACT=  0.486 ms  cambria=  1.786 ms  eager=    0.00 ms  vs_cambria=  3.7x  vs_eager=n/a (no eager)
+  createL           REFRACT=  0.449 ms  cambria=  1.078 ms  eager=    0.00 ms  vs_cambria=  2.4x  vs_eager=n/a (no eager)
+  dropNT            REFRACT=  0.662 ms  cambria=  2.614 ms  eager=   28.02 ms  vs_cambria=  3.9x  vs_eager=       42x
+  dropRT            REFRACT=  0.536 ms  cambria=  1.412 ms  eager=   19.69 ms  vs_cambria=  2.6x  vs_eager=       37x
+  dropL             REFRACT=  0.814 ms  cambria=  1.221 ms  eager=   12.97 ms  vs_cambria=  1.5x  vs_eager=       16x
+  renameL           REFRACT=  0.587 ms  cambria=  1.196 ms  eager=   10.63 ms  vs_cambria=  2.0x  vs_eager=       18x
+  renamePk          REFRACT=  0.497 ms  cambria=  1.198 ms  eager=   14.56 ms  vs_cambria=  2.4x  vs_eager=       29x
+  addLabelToNT      REFRACT=  0.397 ms  cambria=  1.058 ms  eager=    4.96 ms  vs_cambria=  2.7x  vs_eager=       13x
+  addProperty       REFRACT=  0.523 ms  cambria=  1.098 ms  eager=    6.66 ms  vs_cambria=  2.1x  vs_eager=       13x
+  removeLabel       REFRACT=  0.377 ms  cambria=  1.083 ms  eager=    5.47 ms  vs_cambria=  2.9x  vs_eager=       15x
+  removeProperty    REFRACT=  0.478 ms  cambria=  1.080 ms  eager=    7.37 ms  vs_cambria=  2.3x  vs_eager=       15x
+  retypeProperty    REFRACT=  0.526 ms  cambria=  1.409 ms  eager=   15.99 ms  vs_cambria=  2.7x  vs_eager=       30x
+  splitNT           REFRACT=  1.038 ms  cambria=  1.549 ms  eager=   11.83 ms  vs_cambria=  1.5x  vs_eager=       11x
+  splitRT           REFRACT=  0.719 ms  cambria=  1.400 ms  eager=   13.08 ms  vs_cambria=  1.9x  vs_eager=       18x
+  splitL            REFRACT=  2.681 ms  cambria=  1.256 ms  eager=    5.07 ms  vs_cambria=  0.5x  vs_eager=        2x
+  unionNT           REFRACT=  0.995 ms  cambria=  1.446 ms  eager=    7.83 ms  vs_cambria=  1.5x  vs_eager=        8x
+  unionRT           REFRACT=  0.712 ms  cambria=  1.322 ms  eager=   12.29 ms  vs_cambria=  1.9x  vs_eager=       17x
+  unionL            REFRACT=  0.963 ms  cambria=  1.071 ms  eager=    4.15 ms  vs_cambria=  1.1x  vs_eager=        4x

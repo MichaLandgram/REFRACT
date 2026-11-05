@@ -8,33 +8,239 @@ import { unpack, toArray } from '../Helper/helper';
 
 export class SchemaLensEngine {
     private schemaCRDT: Schema_v1;
+    // Cache for the schema data to avoid repeding translations of the Yjs state ot JSON
     private cachedSchema: any | null = null;
+    // Caches for various lookups to improve performance - all 9 following
     private propertyLensCache = new Map<string, PropertyLensMap | null>();
     private appKeyDbKeyCache = new Map<string, { appKey: string, dbKey: string }>();
     private identityTransformCache = new Map<string, boolean>();
     private resolveActiveTypeCache = new Map<string, string>();
     private resolveActiveEdgeTypeCache = new Map<string, string>();
+    private nodeTypeEncodingCache = new Map<string, { dbType: string, staticProps: Record<string, any> }>();
+    private relTypeEncodingCache = new Map<string, { dbType: string, staticProps: Record<string, any> }>();
+    private propEncodingCache = new Map<string, Map<string, { dbKey: string, lens: PropertyLensMap | null }>>();
+    private relPropEncodingCache = new Map<string, Map<string, { dbKey: string, lens: PropertyLensMap | null }>>();
 
     constructor(schemaCRDT: Schema_v1) {
         this.schemaCRDT = schemaCRDT;
         this.refreshCache();
-        this.schemaCRDT.yjsDoc.on('update', () => {
-            this.cachedSchema = null;
-            this.propertyLensCache.clear();
-            this.appKeyDbKeyCache.clear();
-            this.identityTransformCache.clear();
-            this.resolveActiveTypeCache.clear();
-            this.resolveActiveEdgeTypeCache.clear();
+
+        // observe changes inside the schemaCRDT and update the cachedSchema accordingly
+        // not necessary. Only done to not always rebuild the cache from scratch for smaller changes 
+        this.schemaCRDT.yjsDoc.on('update', (_update: Uint8Array, _origin: any, doc: Y.Doc, tr: Y.Transaction) => {
+            const nodeTypesMap     = doc.getMap('nodeTypes');
+            const relTypesMap      = doc.getMap('relationshipTypes');
+            const schemaMappingsMap = doc.getMap('schema_mappings');
+            const schemaUuidMap    = doc.getMap('schema_uuid');
+            const labelSplitsMap   = doc.getMap('label_splits');
+            const labelParentsMap  = doc.getMap('label_parents');
+
+            let mappingsChanged = false;
+            let labelsChanged   = false;
+            let nodeTypesChanged = false;
+            let relTypesChanged  = false;
+
+            const changedKeys = Array.from(tr.changed.keys());
+            for (let i = 0; i < changedKeys.length && !mappingsChanged; i++) {
+                const type = changedKeys[i];
+                let current: any = type;
+                while (current) {
+                    if (current === schemaMappingsMap) {
+                        mappingsChanged = true;
+                        break;
+                    }
+                    if (current === schemaUuidMap || current === labelSplitsMap || current === labelParentsMap) {
+                        labelsChanged = true;
+                        break;
+                    }
+                    if (current === nodeTypesMap) {
+                        nodeTypesChanged = true;
+                        break;
+                    }
+                    if (current === relTypesMap) {
+                        relTypesChanged = true;
+                        break;
+                    }
+                    current = current.parent;
+                }
+            }
+
+            if (mappingsChanged) {
+                if (this.cachedSchema) {
+                    this.cachedSchema.schema_mappings = this.schemaCRDT.getSchemaMappings();
+                    this.cachedSchema.schema_uuid = this.schemaCRDT.getSchemaUuids();
+                    this.clearAllCaches();
+                    const currentNames = this.schemaCRDT.getNodeTypeNamesFast();
+                    const freshNodeTypes: Record<string, any> = {};
+                    for (const name of currentNames) {
+                        freshNodeTypes[name] = this.schemaCRDT.getNodeTypeJSONFast(name);
+                    }
+                    this.cachedSchema.nodeTypes = freshNodeTypes;
+                    const relNames = this.schemaCRDT.getRelationshipTypeNamesFast();
+                    const freshRelTypes: Record<string, any> = {};
+                    for (const name of relNames) {
+                        freshRelTypes[name] = this.schemaCRDT.getRelationshipTypeJSONFast(name);
+                    }
+                    this.cachedSchema.relationshipTypes = freshRelTypes;
+                } else {
+                    this.refreshCache();
+                }
+            } else if (labelsChanged && !nodeTypesChanged && !relTypesChanged) {
+                if (this.cachedSchema) {
+                    this.cachedSchema.schema_uuid = this.schemaCRDT.getSchemaUuids();
+                    const currentNames = this.schemaCRDT.getNodeTypeNamesFast();
+                    const freshNodeTypes: Record<string, any> = {};
+                    for (const name of currentNames) {
+                        freshNodeTypes[name] = this.schemaCRDT.getNodeTypeJSONFast(name);
+                    }
+                    this.cachedSchema.nodeTypes = freshNodeTypes;
+                    const relNames = this.schemaCRDT.getRelationshipTypeNamesFast();
+                    const freshRelTypes: Record<string, any> = {};
+                    for (const name of relNames) {
+                        freshRelTypes[name] = this.schemaCRDT.getRelationshipTypeJSONFast(name);
+                    }
+                    this.cachedSchema.relationshipTypes = freshRelTypes;
+                    this.clearAllCaches();
+                } else {
+                    this.refreshCache();
+                }
+            } else if (nodeTypesChanged || relTypesChanged) {
+                const changedNodeTypes = new Set<string>();
+                const changedRelTypes  = new Set<string>();
+
+                if (nodeTypesChanged) {
+                    const currentNames = this.schemaCRDT.getNodeTypeNamesFast();
+                    for (const name of currentNames) changedNodeTypes.add(name);
+                    if (this.cachedSchema) {
+                        for (const name of Object.keys(this.cachedSchema.nodeTypes)) {
+                            if (!changedNodeTypes.has(name)) changedNodeTypes.add(name);
+                        }
+                    }
+                }
+                if (relTypesChanged) {
+                    const names = this.schemaCRDT.getRelationshipTypeNamesFast();
+                    for (const n of names) changedRelTypes.add(n);
+                }
+
+                this.refreshCacheIncremental(changedNodeTypes, changedRelTypes);
+            }
         });
     }
-    public refreshCache() {
-        // this is what "lens rebuilding means"
-        this.cachedSchema = this.schemaCRDT.transformToJSONCleanSchema();
+    private clearAllCaches() {
         this.propertyLensCache.clear();
         this.appKeyDbKeyCache.clear();
         this.identityTransformCache.clear();
         this.resolveActiveTypeCache.clear();
         this.resolveActiveEdgeTypeCache.clear();
+        this.nodeTypeEncodingCache.clear();
+        this.relTypeEncodingCache.clear();
+        this.propEncodingCache.clear();
+        this.relPropEncodingCache.clear();
+    }
+    // full build of the cachedSchema from the Yjs state.
+    // Should be called when the schema is first loaded or when a large change occurs.
+    public refreshCache() {
+        if (this.cachedSchema) return;
+        const nodeTypeNames = this.schemaCRDT.getNodeTypeNamesFast();
+        const nodeTypes: Record<string, any> = {};
+        for (const name of nodeTypeNames) {
+            nodeTypes[name] = this.schemaCRDT.getNodeTypeJSONFast(name);
+        }
+
+        const relTypeNames = this.schemaCRDT.getRelationshipTypeNamesFast();
+        const relationshipTypes: Record<string, any> = {};
+        for (const name of relTypeNames) {
+            relationshipTypes[name] = this.schemaCRDT.getRelationshipTypeJSONFast(name);
+        }
+
+        this.cachedSchema = {
+            nodeTypes,
+            relationshipTypes,
+            schema_mappings: this.schemaCRDT.getSchemaMappings(),
+            schema_uuid: this.schemaCRDT.getSchemaUuids(),
+        };
+
+        this.clearAllCaches();
+    }
+
+    private refreshCacheIncremental(changedNodeTypes: Set<string>, changedRelTypes: Set<string>) {
+        if (!this.cachedSchema) {
+            this.refreshCache();
+            return;
+        }
+
+        changedNodeTypes.forEach(name => {
+            const json = this.schemaCRDT.getNodeTypeJSONFast(name);
+            if (json) {
+                this.cachedSchema.nodeTypes[name] = json;
+            } else {
+                delete this.cachedSchema.nodeTypes[name];
+            }
+        });
+
+        const allNames = this.schemaCRDT.getNodeTypeNamesFast();
+        const allNamesSet = new Set(allNames);
+        for (const name of allNames) {
+            if (!(name in this.cachedSchema.nodeTypes)) {
+                this.cachedSchema.nodeTypes[name] = this.schemaCRDT.getNodeTypeJSONFast(name);
+                changedNodeTypes.add(name);
+            }
+        }
+
+        for (const name of Object.keys(this.cachedSchema.nodeTypes)) {
+            if (!allNamesSet.has(name)) {
+                delete this.cachedSchema.nodeTypes[name];
+                changedNodeTypes.add(name);
+            }
+        }
+
+        changedRelTypes.forEach(name => {
+            const json = this.schemaCRDT.getRelationshipTypeJSONFast(name);
+            if (json) {
+                this.cachedSchema.relationshipTypes[name] = json;
+            } else {
+                delete this.cachedSchema.relationshipTypes[name];
+            }
+        });
+
+        const allRelNames = this.schemaCRDT.getRelationshipTypeNamesFast();
+        const allRelNamesSet = new Set(allRelNames);
+        for (const name of Object.keys(this.cachedSchema.relationshipTypes)) {
+            if (!allRelNamesSet.has(name)) {
+                delete this.cachedSchema.relationshipTypes[name];
+                changedRelTypes.add(name);
+            }
+        }
+
+        this.cachedSchema.schema_mappings = this.schemaCRDT.getSchemaMappings();
+        this.cachedSchema.schema_uuid = this.schemaCRDT.getSchemaUuids();
+
+        // If most types changed, bulk-clear is faster than per-type invalidation
+        const totalTypes = Object.keys(this.cachedSchema.nodeTypes).length;
+        if (changedNodeTypes.size >= totalTypes * 0.5 || changedRelTypes.size > 0) {
+            this.clearAllCaches();
+        } else {
+            changedNodeTypes.forEach(name => {
+                this.invalidateCachesForType(name);
+            });
+        }
+    }
+    private invalidateCachesForType(typeName: string) {
+        this.propertyLensCache.keys().forEach(key => {
+            if (key.startsWith(typeName + '#')) this.propertyLensCache.delete(key);
+        });
+        this.appKeyDbKeyCache.keys().forEach(key => {
+            if (key.startsWith(typeName + '#')) this.appKeyDbKeyCache.delete(key);
+        });
+        this.identityTransformCache.keys().forEach(key => {
+            if (key.startsWith(typeName + '#')) this.identityTransformCache.delete(key);
+        });
+        this.resolveActiveTypeCache.clear();
+        this.resolveActiveEdgeTypeCache.clear();
+        this.nodeTypeEncodingCache.delete(typeName);
+        this.relTypeEncodingCache.delete(typeName);
+        this.propEncodingCache.delete(typeName);
+        this.relPropEncodingCache.delete(typeName);
     }
     private static readonly TYPE_LATTICE: Record<string, number> = {
         string:  4,
@@ -185,7 +391,8 @@ export class SchemaLensEngine {
                 nextType = targetType || splitRule.defaultType;
             }
             if (nextType === currentType) {
-                for (const [, rule] of Object.entries(mappings)) {
+                const sortedRules = Object.entries(mappings).sort((a, b) => a[0].localeCompare(b[0]));
+                for (const [, rule] of sortedRules) {
                     const ru = rule as any;
                     if (ru.kind === 'union' && ru.legacyTypes.includes(currentType)) {
                         nextType = ru.newType;
@@ -231,7 +438,8 @@ export class SchemaLensEngine {
                 }
             }
             if (nextType === currentType) {
-                for (const [, rule] of Object.entries(mappings)) {
+                const sortedRules = Object.entries(mappings).sort((a, b) => a[0].localeCompare(b[0]));
+                for (const [, rule] of sortedRules) {
                     const rul = rule as any;
                     if (rul.kind === 'unionRT' && rul.legacyEdges.includes(currentType)) {
                         nextType = rul.newEdge;
@@ -248,11 +456,14 @@ export class SchemaLensEngine {
         return currentType;
     }
     
-    public encodeNodeForGraph( appType: string, appProps: Record<string, any>): { dbType: string, dbProps: Record<string, any> } {
+    private getTypeEncodingPath(appType: string): { dbType: string, staticProps: Record<string, any> } {
+        let cached = this.nodeTypeEncodingCache.get(appType);
+        if (cached) return cached;
+
         if (!this.cachedSchema) this.refreshCache();
 
         let currentType = appType;
-        const dbProps: Record<string, any> = { ...appProps };
+        const staticProps: Record<string, any> = {};
         const mappings = this.cachedSchema.schema_mappings || {};
 
         let stabilized = false;
@@ -275,11 +486,9 @@ export class SchemaLensEngine {
                 const splitProp = splitRuleFound.splitProperty;
                 const mapEntry = Object.entries(splitRuleFound.mapping).find(([k, v]) => v === currentType);
                 if (mapEntry) {
-                    dbProps[splitProp] = mapEntry[0];
+                    staticProps[splitProp] = mapEntry[0];
                 } else if (splitRuleFound.defaultType === currentType) {
-                    if (dbProps[splitProp] === undefined) {
-                        dbProps[splitProp] = splitRuleFound.defaultType;
-                    }
+                    staticProps[splitProp] = splitRuleFound.defaultType;
                 }
                 currentType = nextType;
                 continue;
@@ -300,22 +509,99 @@ export class SchemaLensEngine {
                 stabilized = true;
             }
         }
-        const finalEncodedProps: Record<string, any> = {};
-        for (const [key, rawVal] of Object.entries(dbProps)) {
-            if (key.startsWith('__')) continue;
-            const { dbKey } = this.getAppKeyAndDbKey(appType, key, 'NodeType');
-            finalEncodedProps[dbKey] = this.encodeValueForGraph(appType, key, rawVal, 'NodeType');
-        }
 
-        return { dbType: currentType, dbProps: finalEncodedProps };
+        const result = { dbType: currentType, staticProps };
+        this.nodeTypeEncodingCache.set(appType, result);
+        return result;
     }
 
-    public encodeRelationshipForGraph( appType: string, appProps: Record<string, any> ): { dbType: string, dbProps: Record<string, any> } {
+    private getPropEncodingInfo(appType: string, propKey: string): { dbKey: string, lens: PropertyLensMap | null } {
+        let typeCache = this.propEncodingCache.get(appType);
+        if (!typeCache) {
+            typeCache = new Map();
+            this.propEncodingCache.set(appType, typeCache);
+        }
+        let info = typeCache.get(propKey);
+        if (info === undefined) {
+            const { dbKey } = this.getAppKeyAndDbKey(appType, propKey, 'NodeType');
+            const lens = this.getPropertyLens(appType, propKey, 'NodeType') || null;
+            info = { dbKey, lens };
+            typeCache.set(propKey, info);
+        }
+        return info;
+    }
+
+    private encodeValueWithLens(lens: PropertyLensMap | null, rawAppValue: any): any {
+        let stringifiedValue = String(rawAppValue);
+
+        if (!lens) {
+            if (rawAppValue instanceof Date) return { value: rawAppValue.toISOString(), writeType: 'date' as dataTypes };
+            if (typeof rawAppValue === 'number') return { value: stringifiedValue, writeType: 'number' as dataTypes };
+            if (typeof rawAppValue === 'boolean') return { value: stringifiedValue, writeType: 'boolean' as dataTypes };
+            return { value: stringifiedValue, writeType: 'string' as dataTypes }; 
+        }
+
+        if (lens.value === 'date' && rawAppValue instanceof Date) {
+            stringifiedValue = rawAppValue.toISOString();
+        } else if (lens.value === 'boolean') {
+            stringifiedValue = rawAppValue === true ? "true" : "false";
+        } else {
+            stringifiedValue = String(rawAppValue); 
+        }
+
+        if (lens.transformerMap) {
+            for (const [dbKey, appMappedValue] of Object.entries(lens.transformerMap)) {
+                if (dbKey !== 'default' && String(appMappedValue) === stringifiedValue) {
+                    return { value: dbKey, writeType: lens.value }; 
+                }
+            }
+        }
+
+        return { value: stringifiedValue, writeType: lens.value };
+    }
+
+    public encodeNodeForGraph(appType: string, appProps: Record<string, any>): { dbType: string, dbProps: Record<string, any> } {
+        const { dbType, staticProps } = this.getTypeEncodingPath(appType);
+        
+        const finalEncodedProps: Record<string, any> = {};
+        for (const [key, val] of Object.entries(staticProps)) {
+            finalEncodedProps[key] = { value: val, writeType: 'string' as dataTypes };
+        }
+        appProps = appProps || {};
+        for (const [key, rawVal] of Object.entries(appProps)) {
+            if (key.startsWith('__')) continue;
+            const { dbKey, lens } = this.getPropEncodingInfo(appType, key);
+            finalEncodedProps[dbKey] = this.encodeValueWithLens(lens, rawVal);
+        }
+
+        return { dbType, dbProps: finalEncodedProps };
+    }
+
+    private getRelPropEncodingInfo(appType: string, propKey: string): { dbKey: string, lens: PropertyLensMap | null } {
+        let typeCache = this.relPropEncodingCache.get(appType);
+        if (!typeCache) {
+            typeCache = new Map();
+            this.relPropEncodingCache.set(appType, typeCache);
+        }
+        let info = typeCache.get(propKey);
+        if (info === undefined) {
+            const { dbKey } = this.getAppKeyAndDbKey(appType, propKey, 'RelationshipType');
+            const lens = this.getPropertyLens(appType, propKey, 'RelationshipType') || null;
+            info = { dbKey, lens };
+            typeCache.set(propKey, info);
+        }
+        return info;
+    }
+
+    private getEdgeTypeEncodingPath(appType: string): { dbType: string, staticProps: Record<string, any> } {
+        let cached = this.relTypeEncodingCache.get(appType);
+        if (cached) return cached;
+
         if (!this.cachedSchema) this.refreshCache();
-        const mappings = this.cachedSchema.schema_mappings || {};
 
         let currentType = appType;
-        const dbProps: Record<string, any> = { ...appProps };
+        const staticProps: Record<string, any> = {};
+        const mappings = this.cachedSchema.schema_mappings || {};
 
         let stabilized = false;
         const maxIterations = 100;
@@ -337,9 +623,9 @@ export class SchemaLensEngine {
                 const splitProp = splitRuleFound.splitProperty;
                 if (splitProp) {
                     if (splitRuleFound.newEdge1 === currentType) {
-                        dbProps[splitProp] = '1';
+                        staticProps[splitProp] = '1';
                     } else if (splitRuleFound.newEdge2 === currentType) {
-                        dbProps[splitProp] = '2';
+                        staticProps[splitProp] = '2';
                     }
                 }
                 currentType = nextType;
@@ -362,13 +648,22 @@ export class SchemaLensEngine {
             }
         }
 
-        const finalEncodedProps: Record<string, any> = {};
-        for (const [key, rawVal] of Object.entries(dbProps)) {
+        const result = { dbType: currentType, staticProps };
+        this.relTypeEncodingCache.set(appType, result);
+        return result;
+    }
+
+    public encodeRelationshipForGraph( appType: string, appProps: Record<string, any> ): { dbType: string, dbProps: Record<string, any> } {
+        const { dbType, staticProps } = this.getEdgeTypeEncodingPath(appType);
+        
+        const finalEncodedProps: Record<string, any> = { ...staticProps };
+        appProps = appProps || {};
+        for (const [key, rawVal] of Object.entries(appProps)) {
             if (key.startsWith('__')) continue;
-            const { dbKey } = this.getAppKeyAndDbKey(currentType, key, 'RelationshipType');
-            finalEncodedProps[dbKey] = this.encodeValueForGraph(currentType, key, rawVal, 'RelationshipType');
+            const { dbKey, lens } = this.getRelPropEncodingInfo(appType, key);
+            finalEncodedProps[dbKey] = this.encodeValueWithLens(lens, rawVal);
         }
-        return { dbType: currentType, dbProps: finalEncodedProps };
+        return { dbType, dbProps: finalEncodedProps };
     }
 
     public decodeStringFromGraph(identifyingType: string, propertyKey: string, rawValue: any, changeType: whatType): any {
@@ -387,6 +682,18 @@ export class SchemaLensEngine {
 
             const targetType = lens ? lens.value : writeType;
             if (!targetType) return toBeTranslatedString;
+
+
+            // idea for type interpretation conflict "24" and "false"
+            // if (writeType && targetType && writeType !== targetType) {
+            //     if (writeType === 'boolean' && targetType === 'string') {
+            //         if (toBeTranslatedString === 'false') {
+            //             toBeTranslatedString = '0';
+            //         } else if (toBeTranslatedString === 'true') {
+            //             toBeTranslatedString = '1';
+            //         }
+            //     }
+            // }
 
             switch (targetType) {
                 case 'number': {
@@ -592,7 +899,7 @@ export class SchemaLensEngine {
     public decodeAndFilterProperties(identifyingType: string, rawProps: Record<string, any>, changeType: whatType): Record<string, any> {
         if (!this.cachedSchema) this.refreshCache();
         const targetTypes = changeType === "NodeType" ? this.cachedSchema.nodeTypes : this.cachedSchema.relationshipTypes;
-        if (!targetTypes || !targetTypes[identifyingType]) throw new SchemaError(`Type ${identifyingType} not found`);
+        // if (!targetTypes || !targetTypes[identifyingType]) throw new SchemaError(`Type ${identifyingType} not found`);
         const decodedProps: Record<string, any> = {};
 
         for (const [key, rawValue] of Object.entries(rawProps)) {
@@ -817,14 +1124,14 @@ export class SchemaLensEngine {
         return targetTypes[identifyingType].labels;
     }
 
-    private getEndpointLabel(labelField: any): string {
-        if (typeof labelField === 'string') return labelField;
+    private getEndpointLabels(labelField: any): string[] {
+        if (typeof labelField === 'string') return [labelField];
         if (labelField && typeof labelField === 'object') {
             const uuid = Object.keys(labelField)[0];
-            if (!uuid) return '';
-            return (this.cachedSchema?.schema_uuid as Record<string, string>)?.[uuid] ?? uuid;
+            if (!uuid) return [];
+            return this.schemaCRDT.resolveLabelNames(uuid);
         }
-        return '';
+        return [];
     }
 
     public isConnectionAllowed(edgeType: string, sType: string, tType: string): boolean {
@@ -832,15 +1139,15 @@ export class SchemaLensEngine {
         const relDef = this.cachedSchema.relationshipTypes?.[edgeType];
         if (!relDef) return false;
 
-        const exsLabel = this.getEndpointLabel(relDef.sourceNodeLabel);
-        const extLabel = this.getEndpointLabel(relDef.targetNodeLabel);
+        const exsLabels = this.getEndpointLabels(relDef.sourceNodeLabel);
+        const extLabels = this.getEndpointLabels(relDef.targetNodeLabel);
 
-        if (!exsLabel || !extLabel) return false;
+        if (exsLabels.length === 0 || extLabels.length === 0) return false;
 
-        const sLabels = this.getNLabels(sType, 'NodeType');
-        const tLabels = this.getNLabels(tType, 'NodeType');
+        const sLabels = toArray(this.getNLabels(sType, 'NodeType'));
+        const tLabels = toArray(this.getNLabels(tType, 'NodeType'));
 
-        return toArray(sLabels).includes(exsLabel) && toArray(tLabels).includes(extLabel);
+        return exsLabels.some(l => sLabels.includes(l)) && extLabels.some(l => tLabels.includes(l));
     }
 
     // full graph lensing with optional lazy property decoding
@@ -870,7 +1177,14 @@ export class SchemaLensEngine {
             };
         });
 
-        const validEdges = this.filterAllowedRelationships(resolvedEdges, edge => edge.type).filter(edge => validNodeIds.has(edge.sourceId) && validNodeIds.has(edge.targetId));
+        const nodeTypeMap = new Map(validNodes.map(n => [n.id, n.type]));
+        const validEdges = this.filterAllowedRelationships(resolvedEdges, edge => edge.type).filter(edge => {
+            if (!validNodeIds.has(edge.sourceId) || !validNodeIds.has(edge.targetId)) return false;
+            const sType = nodeTypeMap.get(edge.sourceId);
+            const tType = nodeTypeMap.get(edge.targetId);
+            if (!sType || !tType) return false;
+            return this.isConnectionAllowed(edge.type, sType, tType);
+        });
 
         const lensedEdges = validEdges.map(edge => ({
             ...edge,
@@ -881,101 +1195,13 @@ export class SchemaLensEngine {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
+    /* istanbul ignore next */
     public lensNode(rawNode: { id: string; type: string; props: Record<string, any> } ): { id: string; rawType: string; type: string; appProps: Record<string, any> } | null {
         if (!this.cachedSchema) this.refreshCache();
         const resolved = this.resolveActiveType(rawNode.type, rawNode.props);
         if (!this.isNodeAllowed(resolved)) return null;
         const appProps = this.decodeAndFilterPropertiesLazy(resolved, rawNode.props, 'NodeType');
         return { id: rawNode.id, rawType: rawNode.type, type: resolved, appProps };
-    }
-
-    public lensEdge(rawEdge: { id: string; type: string; sourceId: string; targetId: string; props: Record<string, any> }, sResType: string, tResType: string, ): { id: string; type: string; sourceId: string; targetId: string; appProps: Record<string, any> } | null {
-        if (!this.cachedSchema) this.refreshCache();
-        const resolved = this.resolveActiveEdgeType(rawEdge.type, rawEdge.props);
-        if (!this.isConnectionAllowed(resolved, sResType, tResType)) return null;
-        const appProps = this.decodeAndFilterPropertiesLazy(resolved, rawEdge.props, 'RelationshipType');
-        return { id: rawEdge.id, type: resolved, sourceId: rawEdge.sourceId, targetId: rawEdge.targetId, appProps };
-    }
-
-    public *traverse( db: PropertyGraph, doc: Y.Doc, startNodeIds: string[], opts: { edgeTypes?: string[]; targetTypes?: string[]; maxDepth?: number; direction?: 'out' | 'in' | 'both'; predicate?: (node: { id: string; rawType: string; type: string; appProps: Record<string, any> }) => boolean; } = {},
-    ): Generator<{
-        node:    { id: string; rawType: string; type: string; appProps: Record<string, any> };
-        depth:   number;
-        viaEdge: { id: string; type: string; sourceId: string; targetId: string; appProps: Record<string, any> } | null;
-    }> {
-        if (!this.cachedSchema) this.refreshCache();
-        const maxDepth  = opts.maxDepth  ?? 1;
-        const direction = opts.direction ?? 'out';
-        const visited   = new Set<string>();
-        const queue: Array<{ id: NodeId; depth: number; viaEdge: { id: EdgeId; type: string; sourceId: NodeId; targetId: NodeId; appProps: Record<string, any> } | null }> = startNodeIds.map(id => ({ id, depth: 0, viaEdge: null }));
-
-        while (queue.length > 0) {
-            const item = queue.shift()!;
-            if (visited.has(item.id)) continue;
-            visited.add(item.id);
-
-            const rawNode = db.getRawNode(doc, item.id);
-            if (!rawNode) continue;
-            const node = this.lensNode(rawNode);
-            if (!node) continue;
-
-            if (!opts.predicate || opts.predicate(node)) {
-                yield { node, depth: item.depth, viaEdge: item.viaEdge };
-            }
-
-            if (item.depth >= maxDepth) continue;
-
-            const edgeIds: string[] = [];
-            if (direction === 'out' || direction === 'both') {
-                const out = db.getOutgoingEdgeIds(doc, item.id);
-                for (let i = 0; i < out.length; i++) edgeIds.push(out[i]);
-            }
-            if (direction === 'in' || direction === 'both') {
-                const inc = db.getIncomingEdgeIds(doc, item.id);
-                for (let i = 0; i < inc.length; i++) edgeIds.push(inc[i]);
-            }
-
-            for (let eIDpos = 0; eIDpos < edgeIds.length; eIDpos++) {
-                const rawEdge = db.getRawEdgeById(doc, edgeIds[eIDpos]);
-                if (!rawEdge) continue;
-                const nextId = direction === 'in' ? rawEdge.sourceId : rawEdge.targetId;
-                if (visited.has(nextId)) continue;
-                const nextRawType = db.getRawNode(doc, nextId)?.type;
-                if (!nextRawType) continue;
-                const nextResolved = this.resolveActiveType(nextRawType, {});
-                const lensedEdge = this.lensEdge(rawEdge, node.type, nextResolved);
-                if (!lensedEdge) continue;
-                if (opts.edgeTypes && opts.edgeTypes.indexOf(lensedEdge.type) === -1) continue;
-                queue.push({ id: nextId, depth: item.depth + 1, viaEdge: lensedEdge });
-            }
-        }
-    }
-
-    // typescript seems to like this more, putting generator results into an array with a simple helper function
-    private static collectGen<T>(gen: Generator<T>): T[] {
-        const arr: T[] = [];
-        for (;;) { const s = gen.next(); if (s.done) return arr; arr.push(s.value); }
-    }
-
-    public oneHopRQ4(
-        db:          PropertyGraph,
-        doc:         Y.Doc,
-        startNodeId: string,
-        edgeType:    string,
-        targetType?: string,
-    ): { id: string; rawType: string; type: string; appProps: Record<string, any> }[] {
-        return SchemaLensEngine.collectGen(this.traverse(db, doc, [startNodeId], { maxDepth: 1, edgeTypes: [edgeType], targetTypes: targetType ? [targetType] : undefined })).filter(s => s.depth === 1).map(s => s.node);
     }
 
 }

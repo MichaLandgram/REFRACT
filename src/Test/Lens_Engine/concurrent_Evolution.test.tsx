@@ -1,17 +1,14 @@
 import * as Y from 'yjs';
 import { bon19SchemaDef } from "../../Helper/Schema/Bon19_Schema_forLens";
 import { Schema_v1 } from "../../Schema_CRDT/SchemaCRDT";
-import { getDoc } from "../../Helper/creator";
+import { getDoc } from "../../Helper/helper";
 import { bidirectionalSync } from "../../Helper/sync";
 import { SchemaLensEngine } from "../../LensEngine/SchemaLensEngine";
 import { LensedPropertyGraph } from '../../LensEngine/LensedPropertyGraph';
-import { PropertyGraph } from '../../GraphDB_CRDT/PropertyGraph';
 
 describe("Sequential Evolution - basic", () => {
     let schema: Schema_v1;
     let schema2: Schema_v1;
-    let pGraph: PropertyGraph;
-    let pGraph2: PropertyGraph;
     let lpGraph: LensedPropertyGraph;
     let lpGraph2: LensedPropertyGraph;
     let doc: Y.Doc;
@@ -19,16 +16,14 @@ describe("Sequential Evolution - basic", () => {
     beforeEach(() => {
         doc = getDoc(1);
         doc2 = getDoc(2);
-        schema = new Schema_v1(bon19SchemaDef, doc);
-        schema2 = new Schema_v1(undefined, doc2);
-        pGraph = new PropertyGraph();
-        pGraph2 = new PropertyGraph();
-        lpGraph = new LensedPropertyGraph(doc, pGraph, new SchemaLensEngine(schema));
-        lpGraph2 = new LensedPropertyGraph(doc2, pGraph2, new SchemaLensEngine(schema2));
+        lpGraph = new LensedPropertyGraph({ doc, predefinedSchema: bon19SchemaDef });
+        lpGraph2 = new LensedPropertyGraph({ doc: doc2 });
+        schema = lpGraph.getSchemaInteraction();
+        schema2 = lpGraph2.getSchemaInteraction();
     })
 
     test("Scenario from the Figure 1 (Split vs Change Add Property)", () => {
-        lpGraph.addNode("message-1", "Message", { imageFile: "POST" });
+        lpGraph.addNode({ nodeId: "message-1", type: "Message", props: { imageFile: "POST" } });
         bidirectionalSync(doc, doc2);
         const visible_t0 = lpGraph.getVisibleGraph({ lazy: false }).lensedNodes[0];
         const visible2_t0 = lpGraph2.getVisibleGraph({ lazy: false }).lensedNodes[0];
@@ -44,7 +39,7 @@ describe("Sequential Evolution - basic", () => {
         schema.SMO_splitNodeType({ legacyType: "Message", splitProperty: "mood", mapping: { happy: "Post", sad: "Comment" }, defaultType: "Post" });
 
         schema2.SMO_AddPropertyType({ Idenifying: "Message", newProperty: { key: "edited", value: "boolean" }, defa: "false", whatType: "NodeType" });
-        lpGraph2.updateNode("message-1", { edited: false });
+        lpGraph2.updateNode({ nodeId: "message-1", props: { edited: false } });
 
         const visible_t1 = lpGraph.getVisibleGraph({ lazy: false }).lensedNodes[0];
         const visible2_t1 = lpGraph2.getVisibleGraph({ lazy: false }).lensedNodes[0];
@@ -69,12 +64,10 @@ describe("Sequential Evolution - basic", () => {
         expect(visible2_t2.type).toBe("Post");
         expect(visible2_t2.appProps.imageFile).toBe("POST");
         expect(visible2_t2.appProps.edited).toBe(false);
-
-
     });
 
     test("Scenario from the Figure 3 (Rename vs Rename and Retype vs Retype)", () => {
-        lpGraph.addNode("person-1", "Person", { lastName: "Hacker", age: 24 });
+        lpGraph.addNode({ nodeId: "person-1", type: "Person", props: { lastName: "Hacker", age: 24 } });
         bidirectionalSync(doc, doc2);
 
         const visible_t0 = lpGraph.getVisibleGraph({ lazy: false }).lensedNodes[0];
@@ -99,8 +92,8 @@ describe("Sequential Evolution - basic", () => {
         expect(visible2_t1.appProps.age).toBe(true);
 
 
-        lpGraph.updateNode("person-1", { name: "Anon", age: "25" });
-        lpGraph2.updateNode("person-1", { familyName: "Coder", age: false });
+        lpGraph.updateNode({ nodeId: "person-1", props: { name: "Anon", age: "25" } });
+        lpGraph2.updateNode({ nodeId: "person-1", props: { familyName: "Coder", age: false } });
 
         const visible_t2 = lpGraph.getVisibleGraph({ lazy: false }).lensedNodes[0];
         const visible2_t2 = lpGraph2.getVisibleGraph({ lazy: false }).lensedNodes[0];
@@ -268,7 +261,7 @@ describe("Sequential Evolution - basic", () => {
                 expect(lensed1[0].appProps.yearlyBonus).toBe(5000);
                 expect(lensed2[0].appProps.yearlyBonus).toBe(5000);
             });
-                    test("Union NodeType", () => {
+            test("Union NodeType", () => {
             schema.SMO_addNodeType("ResidentNode", ["res"], { residentId: "string" });
             schema.SMO_addNodeType("CitizenNode", ["cit"], { passportId: "string" });
 
@@ -325,4 +318,141 @@ describe("Sequential Evolution - basic", () => {
             expect(lensedNodes[0].appProps.sharedProp).toBe("hello");
         });
         });
+
+    describe("CONCURRENT LENS DATA TRANSLATION", () => {
+        test("Concurrent Rename Label - visible graph reflects rename", () => {
+            bidirectionalSync(doc, doc2);
+
+            lpGraph.addNode({ nodeId: "person-1", type: "Person", props: { firstName: "Alice" } });
+            bidirectionalSync(doc, doc2);
+
+            schema.SMO_renameLabel("person", "human");
+            schema2.SMO_renameLabel("person", "individual");
+            bidirectionalSync(doc, doc2);
+
+            const visible1 = lpGraph.getVisibleGraph({ lazy: false }).lensedNodes[0];
+            const visible2 = lpGraph2.getVisibleGraph({ lazy: false }).lensedNodes[0];
+
+            // LWW: one rename prevails, both replicas agree
+            expect(visible1.label).toEqual(visible2.label);
+        });
+
+        test("Concurrent TransformerMap - value translation through lens", () => {
+            bidirectionalSync(doc, doc2);
+
+            lpGraph.addNode({ nodeId: "msg-1", type: "Message", props: { mood: "happy" } });
+            bidirectionalSync(doc, doc2);
+
+            const tags1 = schema.getPropertyTypeTags("Message", "mood", "NodeType");
+            schema.SMO_ChangePropertyType({
+                Idenifying: "Message",
+                propertyKey: "mood",
+                oldTags: tags1,
+                newPropertyType: "number",
+                defaultVal: { default: -1, transformerMap: { "happy": "10", "sad": "0", "default": "-1" } },
+                whatType: "NodeType"
+            });
+
+            bidirectionalSync(doc, doc2);
+
+            const visible1 = lpGraph.getVisibleGraph({ lazy: false }).lensedNodes[0];
+            const visible2 = lpGraph2.getVisibleGraph({ lazy: false }).lensedNodes[0];
+
+            // TransformerMap should translate "happy" -> 10 (as number)
+            expect(visible1.appProps.mood).toBe(10);
+            expect(visible2.appProps.mood).toBe(10);
+        });
+
+        test("Concurrent Type Lattice - data-level resolution picks value matching higher-expressiveness type", () => {
+            bidirectionalSync(doc, doc2);
+
+            lpGraph.addNode({ nodeId: "person-1", type: "Person", props: { firstName: "Alice" } });
+            bidirectionalSync(doc, doc2);
+
+            // Concurrently retype firstName: schema1 -> number, schema2 -> boolean
+            const tags1 = schema.getPropertyTypeTags("Person", "firstName", "NodeType");
+            const tags2 = schema2.getPropertyTypeTags("Person", "firstName", "NodeType");
+
+            schema.SMO_ChangePropertyType({
+                Idenifying: "Person", propertyKey: "firstName", oldTags: tags1,
+                newPropertyType: "number", defaultVal: { default: 0 },
+                whatType: "NodeType"
+            });
+            schema2.SMO_ChangePropertyType({
+                Idenifying: "Person", propertyKey: "firstName", oldTags: tags2,
+                newPropertyType: "boolean", defaultVal: { default: false },
+                whatType: "NodeType"
+            });
+
+            bidirectionalSync(doc, doc2);
+
+            const visible1 = lpGraph.getVisibleGraph({ lazy: false }).lensedNodes[0];
+            const visible2 = lpGraph2.getVisibleGraph({ lazy: false }).lensedNodes[0];
+
+            // Both replicas should converge on the same value
+            expect(visible1.appProps.firstName).toEqual(visible2.appProps.firstName);
+        });
+
+        test("Concurrent Split RT - relationship types translated through lens", () => {
+            bidirectionalSync(doc, doc2);
+
+            lpGraph.addNode({ nodeId: "p1", type: "Person", props: { firstName: "Alice" } });
+            lpGraph.addNode({ nodeId: "p2", type: "Person", props: { firstName: "Bob" } });
+            lpGraph.addEdge({ sourceId: "p1", targetId: "p2", type: "KNOWS", props: { since: "2020" }, edgeId: "e1" });
+            bidirectionalSync(doc, doc2);
+
+            schema.SMO_splitRelationshipType({
+                legacyType: "KNOWS",
+                newType1: "KNOWS_WELL",
+                newType2: "KNOWS_BARELY"
+            });
+            schema2.SMO_AddPropertyType({
+                Idenifying: "KNOWS",
+                newProperty: { key: "strength", value: "number" },
+                whatType: "RelationshipType"
+            });
+            bidirectionalSync(doc, doc2);
+
+            const visible1 = lpGraph.getVisibleGraph({ lazy: false });
+            const visible2 = lpGraph2.getVisibleGraph({ lazy: false });
+
+            // Edge should be translated to the split target type on the originating replica
+            expect(visible1.lensedEdges.length).toBeGreaterThanOrEqual(1);
+            expect(visible1.lensedEdges[0].type).not.toBe("KNOWS");
+            // Schema should converge across replicas
+            expect(lpGraph.getSchemaInteraction().transformToJSONFullSchema())
+                .toEqual(lpGraph2.getSchemaInteraction().transformToJSONFullSchema());
+        });
+
+        test("Concurrent Union RT - relationship types translated through lens", () => {
+            schema.SMO_addRelationshipType("KNOWS2", "person", "person", { since: "date" });
+            bidirectionalSync(doc, doc2);
+
+            lpGraph.addNode({ nodeId: "p1", type: "Person", props: { firstName: "Alice" } });
+            lpGraph.addNode({ nodeId: "p2", type: "Person", props: { firstName: "Bob" } });
+            lpGraph.addNode({ nodeId: "m1", type: "Message", props: { mood: "happy" } });
+            lpGraph.addEdge({ sourceId: "p1", targetId: "p2", type: "KNOWS", props: { since: "2020" }, edgeId: "e1" });
+            lpGraph.addEdge({ sourceId: "p1", targetId: "m1", type: "KNOWS2", props: { date: "2021" }, edgeId: "e2" });
+            bidirectionalSync(doc, doc2);
+
+            schema.SMO_unionRelationshipTypes({
+                newType: "INTERACTS",
+                legacyTypes: ["KNOWS", "KNOWS2"],
+                writeDefault: "KNOWS"
+            });
+            bidirectionalSync(doc, doc2);
+
+            const visible1 = lpGraph.getVisibleGraph({ lazy: false });
+            const visible2 = lpGraph2.getVisibleGraph({ lazy: false });
+
+            // Both edges should now be typed as INTERACTS
+            visible1.lensedEdges.forEach(edge => {
+                expect(edge.type).toBe("INTERACTS");
+            });
+            expect(visible1.lensedEdges.length).toEqual(visible2.lensedEdges.length);
+            visible1.lensedEdges.forEach((edge, i) => {
+                expect(edge.type).toEqual(visible2.lensedEdges[i].type);
+            });
+        });
+    });
 });

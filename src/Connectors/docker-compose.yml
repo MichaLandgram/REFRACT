@@ -1,0 +1,18 @@
+services:
+  neo4j-1:
+    image: neo4j:4.4.24
+    container_name: neo4j-1
+    ports:
+      - "9074:7474"
+      - "9087:7687"
+    environment:
+      NEO4J_AUTH: none
+
+  neo4j-2:
+    image: neo4j:4.4.24
+    container_name: neo4j-2
+    ports:
+      - "9474:7474"
+      - "9687:7687"
+    environment:
+      NEO4J_AUTH: none

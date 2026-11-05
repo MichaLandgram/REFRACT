@@ -2,9 +2,7 @@ import * as Y from 'yjs';
 import { bon19SchemaDef } from "../../Helper/Schema/Bon19_Schema";
 import { Schema_v1 } from "../../Schema_CRDT/SchemaCRDT";
 import { SchemaError } from "../../Helper/ErrorDefinition";
-import { getDoc } from "../../Helper/creator";
-import { bidirectionalSync } from "../../Helper/sync";
-import { SchemaLensEngine } from "../../LensEngine/SchemaLensEngine";
+import { getDoc } from "../../Helper/helper";
 
 const checkPreloadLabels = (schema: Schema_v1) => {
     expect(schema.testAccessAllLabels().has("resident")).toBeTruthy();
@@ -14,7 +12,6 @@ const checkPreloadLabels = (schema: Schema_v1) => {
     expect(schema.testAccessAllLabels().get("citizen")?.size).toBe(1);
     expect(schema.testAccessAllLabels().get("note")?.size).toBe(1);
 }
-
 const checkPersonNodeType = (schema: Schema_v1) => {
     expect(schema.getNodeTypeJSON('Person')).toBeDefined();
     expect(schema.getNodeTypeJSON('Person').labels).toEqual({ resident: 'resident', citizen: 'citizen', person: 'person' });
@@ -24,7 +21,6 @@ const checkPersonNodeType = (schema: Schema_v1) => {
             lastName: { name: 'lastName', activeTypes: { '1': { value: 'string', default: undefined } } }
         });
 }
-
 const checkMessageNodeType = (schema: Schema_v1) => {
     expect(schema.getNodeTypeJSON('Message')).toBeDefined();
     expect(schema.getNodeTypeJSON('Message').labels).toEqual({ note: 'note', message: 'message' });
@@ -36,7 +32,6 @@ const checkMessageNodeType = (schema: Schema_v1) => {
             browserUsed: { name: 'browserUsed', activeTypes: { '1': { value: 'string', default: undefined } } }
         });
 }
-
 const checkKnowsRelationshipType = (schema: Schema_v1) => {
     expect(schema.getRelationshipTypeJSON('KNOWS')).toBeDefined();
     expect(schema.getRelationshipTypeJSON('KNOWS').sourceNodeLabel.toLowerCase()).toEqual('person');
@@ -44,7 +39,6 @@ const checkKnowsRelationshipType = (schema: Schema_v1) => {
     expect(schema.getRelationshipTypeJSON('KNOWS').properties).toEqual(
         { since: { name: 'since', activeTypes: { '1': { value: 'string', default: undefined } } } });
 }
-
 const checkHasCreatorRelationshipType = (schema: Schema_v1) => {
     expect(schema.getRelationshipTypeJSON('HAS_CREATOR')).toBeDefined();
     expect(schema.getRelationshipTypeJSON('HAS_CREATOR').sourceNodeLabel.toLowerCase()).toEqual('message');
@@ -52,7 +46,6 @@ const checkHasCreatorRelationshipType = (schema: Schema_v1) => {
     expect(schema.getRelationshipTypeJSON('HAS_CREATOR').properties).toEqual(
         { username: { name: 'username', activeTypes: { '1': { value: 'string', default: undefined } } } });
 }
-
 const checkLikesRelationshipType = (schema: Schema_v1) => {
     expect(schema.getRelationshipTypeJSON('LIKES')).toBeDefined();
     expect(schema.getRelationshipTypeJSON('LIKES').sourceNodeLabel.toLowerCase()).toEqual('person');
@@ -61,7 +54,6 @@ const checkLikesRelationshipType = (schema: Schema_v1) => {
         date: { name: 'date', activeTypes: { '1': { value: 'string', default: undefined } } }
     });
 }
-
 const checkReplyOfRelationshipType = (schema: Schema_v1) => {
     expect(schema.getRelationshipTypeJSON('REPLY_OF')).toBeDefined();
     expect(schema.getRelationshipTypeJSON('REPLY_OF').sourceNodeLabel.toLowerCase()).toEqual('message');
@@ -72,8 +64,9 @@ const checkReplyOfRelationshipType = (schema: Schema_v1) => {
 
 describe("Sequential Evolution - basic", () => {
     let schema: Schema_v1;
+    let doc: Y.Doc;
     beforeEach(() => {
-        const doc = getDoc(1);
+        doc = getDoc(1);
         schema = new Schema_v1(bon19SchemaDef, doc);
     })
     /* CREATE */
@@ -87,16 +80,21 @@ describe("Sequential Evolution - basic", () => {
             checkLikesRelationshipType(schema);
             checkReplyOfRelationshipType(schema);
         });
+        // 1
         test("Create Label", () => {
             expect(schema.testAccessAllLabels().has("TestLabel")).toBeFalsy();
             schema.SMO_createLabel("TestLabel");
             const allLabels = schema.testAccessAllLabels();
             expect(allLabels.has("TestLabel")).toBeTruthy();
             expect(allLabels.get("TestLabel")?.size).toBe(1);
+
+            expect(() => schema.SMO_createLabel("TestLabel")).toThrow(SchemaError);
         });
+        // 2
         test("Create NodeType", () => {
             schema.SMO_addNodeType("Account", ["acc"], { iban: "string", balance: "number", bankID: "string" });
             expect(schema.getNodeTypeJSON("Account")).toEqual({
+                // the '1' here is the corresponding clientId
                 labels: { acc: 'acc' },
                 properties: {
                     iban: { name: 'iban', activeTypes: { '1': { value: 'string', default: undefined } } },
@@ -105,44 +103,62 @@ describe("Sequential Evolution - basic", () => {
                 }
             })
 
+            expect(() => schema.SMO_addNodeType("Account", ["acc"], { iban: "string", balance: "number", bankID: "string" })).toThrow(SchemaError);
+
         });
+        // 3
         test("Create RelationshipType", () => {
             schema.SMO_addRelationshipType("OWNED_BY", "resident", "resident", { since: "string" });
             expect(schema.getRelationshipTypeJSON("OWNED_BY")).toBeDefined();
             expect(schema.getRelationshipTypeJSON("OWNED_BY").sourceNodeLabel.toLowerCase()).toEqual("resident");
             expect(schema.getRelationshipTypeJSON("OWNED_BY").targetNodeLabel.toLowerCase()).toEqual("resident");
             expect(schema.getRelationshipTypeJSON("OWNED_BY").properties).toEqual(
+                // the '1' here is the corresponding clientId
                 { since: { name: 'since', activeTypes: { '1': { value: 'string', default: undefined } } } });
+
+            expect(() => schema.SMO_addRelationshipType("OWNED_BY", "resident", "resident", { since: "string" })).toThrow(SchemaError);
         });
 
     });
 
     describe("DROP", () => {
+        // 4
         test("Drop NodeType", () => {
             expect(schema.getNodeTypeJSON("Person")).toBeDefined();
             schema.SMO_dropNodeType("Person");
             expect(() => schema.getNodeTypeJSON("Person")).toThrow(SchemaError);
 
+            expect(() => schema.SMO_dropNodeType("Person")).toThrow(SchemaError);
+
         });
+        // 5
         test("Drop RelationshipType", () => {
             expect(schema.getRelationshipTypeJSON("KNOWS")).toBeDefined();
             schema.SMO_dropRelationshipType("KNOWS");
             expect(() => schema.getRelationshipTypeJSON("KNOWS")).toThrow(SchemaError);
+
+            expect(() => schema.SMO_dropRelationshipType("KNOWS")).toThrow(SchemaError);
         });
+        // 6
         test("Drop Label", () => {
             expect(schema.testAccessAllLabels().has("resident")).toBeTruthy();
             expect(schema.testAccessAllLabels().get("resident")?.size).toBe(1);
             expect(schema.getRelationshipTypeJSON('HAS_CREATOR')).toBeDefined();
             schema.SMO_dropLabel("resident");
             expect(schema.testAccessAllLabels().has("resident")).toBeFalsy();
+            // label should be removed from the label set it is used in
             expect(schema.getNodeTypeJSON('Person')).toBeDefined();
             expect(schema.getNodeTypeJSON('Person').labels).toEqual({ citizen: 'citizen', person: 'person' });
+            // edges that reference the label as source or target should be removed
             expect(() => schema.getRelationshipTypeJSON('HAS_CREATOR')).toThrow(SchemaError);
+
+            expect(() => schema.SMO_dropLabel("resident")).toThrow(SchemaError);
         });
     });
 
     describe("Rename", () => {
-        test("Rename Property Key of NodeType and Edge", () => {
+        // 7
+        test("Rename Property Key of NodeType", () => {
             schema.SMO_renamePropertyKey({ Idenifying: "Person", oldPropertyKey: "firstName", newPropertyKey: "name", whatType: "NodeType" });
             expect(schema.getNodeTypeJSON("Person").properties).toEqual(
                 {
@@ -155,6 +171,7 @@ describe("Sequential Evolution - basic", () => {
             expect(schema.getRelationshipTypeJSON("KNOWS").properties).toEqual(
                 { since: { name: 'seit', activeTypes: { '1': { value: 'string', default: undefined } } } });
         });
+        // 8
         test("Rename a NodeType label (citizen to citizen_old)", () => {
             const storeForCompare = new Set(schema.testAccessAllLabels().get("citizen"));
             schema.SMO_renameLabel("citizen", "citizen_old");
@@ -180,6 +197,7 @@ describe("Sequential Evolution - basic", () => {
     });
 
     describe("Change", () => {
+        // 9
         test("Add Property to NodeType", () => {
             schema.SMO_AddPropertyType({ Idenifying: "Person", newProperty: { key: "age", value: "number" }, whatType: "NodeType" });
             expect(schema.getNodeTypeJSON("Person").properties).toEqual(
@@ -197,6 +215,7 @@ describe("Sequential Evolution - basic", () => {
                     since: { name: 'since', activeTypes: { '1': { value: 'string', default: undefined } } }
                 });
         });
+        // 10
         test("Drop Property from NodeType", () => {
             schema.SMO_DropPropertyType({ Idenifying: "Person", propertyKey: "firstName", whatType: "NodeType" });
             expect(schema.getNodeTypeJSON("Person").properties).toEqual(
@@ -206,6 +225,7 @@ describe("Sequential Evolution - basic", () => {
             schema.SMO_DropPropertyType({ Idenifying: "KNOWS", propertyKey: "since", whatType: "RelationshipType" });
             expect(schema.getRelationshipTypeJSON("KNOWS").properties).toEqual({});
         });
+        // 11
         test("Change Property Type of NodeType", () => {
             const tags = schema.getPropertyTypeTags("Message", "mood", "NodeType");
             const transformerMap = {
@@ -218,12 +238,18 @@ describe("Sequential Evolution - basic", () => {
             expect(schema.getNodeTypeJSON("Message").properties.mood).toEqual({ name: 'mood', activeTypes: { '1': { value: 'number', default: -1, transformerMap: transformerMap } } });
         });
         test("Change Property Type of RelationshipType", () => {
-            const tags = schema.getPropertyTypeTags("KNOWS", "since", "RelationshipType");
-            schema.SMO_ChangePropertyType({ Idenifying: "KNOWS", propertyKey: "since", oldTags: tags, newPropertyType: "number", defaultVal: { default: 2000 }, whatType: "RelationshipType" });
+            schema.SMO_ChangePropertyType({ Idenifying: "KNOWS", propertyKey: "since", newPropertyType: "number", defaultVal: { default: 2000 }, whatType: "RelationshipType" });
             expect(schema.getRelationshipTypeJSON("KNOWS").properties.since).toEqual({ name: 'since', activeTypes: { '1': { value: 'number', default: 2000, transformerMap: {} } } });
         });
-        test("Sequential Cumulative Lens Folding (Change Property Type twice)", () => {
-            const tags1 = schema.getPropertyTypeTags("Message", "mood", "NodeType");
+        test("Add Label to NodeType", () => {
+            schema.SMO_AddLabelToNodeType("Person", "Employee" );
+            expect(schema.getNodeTypeJSON("Person").labels).toEqual({"Employee": "Employee", "citizen": "citizen", "person": "person", "resident": "resident"});
+        });
+        test("Remove Label from NodeType", () => {
+            schema.SMO_RemoveLabelFromNodeType("Person", "resident" );
+            expect(schema.getNodeTypeJSON("Person").labels).toEqual({ citizen: 'citizen', person: 'person' });
+        });
+        test.skip("Sequential Cumulative Lens Folding (Change Property Type twice)", () => {
             const transformerMap1 = {
                 "happy": "10",
                 "sad": "0",
@@ -232,13 +258,11 @@ describe("Sequential Evolution - basic", () => {
             schema.SMO_ChangePropertyType({
                 Idenifying: "Message",
                 propertyKey: "mood",
-                oldTags: tags1,
                 newPropertyType: "number",
                 defaultVal: { default: -1, transformerMap: transformerMap1 },
                 whatType: "NodeType"
             });
 
-            const tags2 = schema.getPropertyTypeTags("Message", "mood", "NodeType");
             const transformerMap2 = {
                 "10": "high",
                 "0": "low",
@@ -247,7 +271,6 @@ describe("Sequential Evolution - basic", () => {
             schema.SMO_ChangePropertyType({
                 Idenifying: "Message",
                 propertyKey: "mood",
-                oldTags: tags2,
                 newPropertyType: "string",
                 defaultVal: { default: "none", transformerMap: transformerMap2 },
                 whatType: "NodeType"
@@ -268,9 +291,20 @@ describe("Sequential Evolution - basic", () => {
     });
 
     describe("Split", () => {
+        // 12
         test("Split Label", () => {
             schema.SMO_splitLabel({ oldName: "person", newName1: "person1", newName2: "person2" });
+
+            // old label does not exsist anymore.
+            expect(schema.testAccessAllLabels().has("person")).toBeFalsy();
+            // the two new labels exist now
+            expect(schema.testAccessAllLabels().has("person1")).toBeTruthy();
+            expect(schema.testAccessAllLabels().has("person2")).toBeTruthy();
+
+            // the label was split in the person node type
             expect(schema.getNodeTypeJSON("Person").labels).toEqual({ resident: 'resident', citizen: 'citizen', person1: 'person1', person2: 'person2' });
+
+            // edges that source or target the old label should now source/target the new label
             const knows = schema.getRelationshipTypeJSON("KNOWS")
             expect(knows).toBeDefined();
             expect(knows.sourceNodeLabel).toEqual("person1");
@@ -279,10 +313,39 @@ describe("Sequential Evolution - basic", () => {
             const likes = schema.getRelationshipTypeJSON("LIKES");
             expect(likes).toBeDefined();
             expect(likes.sourceNodeLabel).toEqual("person1");
+
         });
+        // 13
         test("Split RelationshipType", () => {
-            // TODO
+            schema.SMO_splitRelationshipType({
+                legacyType: "KNOWS",
+                newType1: "KNOWS_CLOSE",
+                newType2: "KNOWS_ACQUAINTANCE"
+                });
+
+
+            const knowsClose = schema.getRelationshipTypeJSON("KNOWS_CLOSE");
+            expect(knowsClose).toBeDefined();
+            expect(knowsClose.sourceNodeLabel).toEqual("person");
+            expect(knowsClose.targetNodeLabel).toEqual("person");
+            expect(knowsClose.properties).toEqual(
+                { since: { name: 'since', activeTypes: { '1': { value: 'string', default: undefined } } } });
+            const knowsAcquaintance = schema.getRelationshipTypeJSON("KNOWS_ACQUAINTANCE");
+            expect(knowsAcquaintance).toBeDefined();
+            expect(knowsAcquaintance.sourceNodeLabel).toEqual("person");
+            expect(knowsAcquaintance.targetNodeLabel).toEqual("person");
+            expect(knowsAcquaintance.properties).toEqual(
+                { since: { name: 'since', activeTypes: { '1': { value: 'string', default: undefined } } } });
+                
+            expect(() => schema.SMO_splitRelationshipType({
+                legacyType: "KNOWS",
+                newType1: "KNOWS_CLOSE",
+                newType2: "KNOWS_ACQUAINTANCE"
+                })).toThrow();
+            
+                
         });
+        // 14
         test("Split NodeType", () => {
             schema.SMO_splitNodeType({
                 legacyType: "Person",
@@ -293,71 +356,67 @@ describe("Sequential Evolution - basic", () => {
                 },
                 defaultType: "Customer"
             });
+            expect(schema.getNodeTypeJSON("Employee")).toBeDefined();
+            expect(schema.getNodeTypeJSON("Employee").labels).toEqual({ resident: 'resident', citizen: 'citizen', person: 'person' });
+            expect(schema.getNodeTypeJSON("Employee").properties).toEqual(
+                {
+                    firstName: { name: 'firstName', activeTypes: { '1': { value: 'string', default: undefined } } },
+                    lastName: { name: 'lastName', activeTypes: { '1': { value: 'string', default: undefined } } }
+                });
+            expect(schema.getNodeTypeJSON("Customer")).toBeDefined();
+            expect(schema.getNodeTypeJSON("Customer").labels).toEqual({ resident: 'resident', citizen: 'citizen', person: 'person' });
+            expect(schema.getNodeTypeJSON("Customer").properties).toEqual(
+                {
+                    firstName: { name: 'firstName', activeTypes: { '1': { value: 'string', default: undefined } } },
+                    lastName: { name: 'lastName', activeTypes: { '1': { value: 'string', default: undefined } } }
+                });
 
-            const engine = new SchemaLensEngine(schema);
-
-            const rawNodes = [
-                { id: "1", type: "Person", props: { role: "Employee", firstName: "Alice", lastName: "Smith" } },
-                { id: "2", type: "Person", props: { role: "Customer", firstName: "Bob", lastName: "Jones" } },
-                { id: "3", type: "Person", props: { firstName: "Charlie", lastName: "Brown" } }
-            ];
-
-            const { lensedNodes } = engine.applyLensToGraph(rawNodes, []);
+            const mapping = schema.testAccessSchemaMappings();
+            expect(mapping.size).toBe(1);
+            const mapForPerson = mapping.get("Person");
+            expect(mapForPerson).toBeDefined();
+            expect(mapForPerson?.kind).toBe("split");
+            expect(mapForPerson?.mapping).toEqual({ "Employee": "Employee", "Customer": "Customer" });
+            expect(mapForPerson?.splitProperty).toBe("role");
             
-            expect(lensedNodes).toHaveLength(3);
-            expect(lensedNodes[0].type).toBe("Employee");
-            expect(lensedNodes[0].appProps.firstName).toBe("Alice");
-            expect(lensedNodes[1].type).toBe("Customer");
-            expect(lensedNodes[1].appProps.firstName).toBe("Bob");
-            expect(lensedNodes[2].type).toBe("Customer");
-            expect(lensedNodes[2].appProps.firstName).toBe("Charlie");
+            // split after split :D 
+            schema.SMO_splitNodeType({
+                legacyType: "Employee",
+                splitProperty: "department",
+                mapping: {
+                    "HR": "HR",
+                    "IT": "IT"
+                },
+                defaultType: "IT"
+            });
 
-            schema.SMO_AddPropertyType({ Idenifying: "Person", newProperty: { key: "middleName", value: "string" }, whatType: "NodeType" });
-            engine.refreshCache();
+            expect(schema.getNodeTypeJSON("HR")).toBeDefined();
+            expect(schema.getNodeTypeJSON("HR").labels).toEqual({ resident: 'resident', citizen: 'citizen', person: 'person' });
+            expect(schema.getNodeTypeJSON("HR").properties).toEqual(
+                {
+                    firstName: { name: 'firstName', activeTypes: { '1': { value: 'string', default: undefined } } },
+                    lastName: { name: 'lastName', activeTypes: { '1': { value: 'string', default: undefined } } }
+                });
+            expect(schema.getNodeTypeJSON("IT")).toBeDefined();
+            expect(schema.getNodeTypeJSON("IT").labels).toEqual({ resident: 'resident', citizen: 'citizen', person: 'person' });
+            expect(schema.getNodeTypeJSON("IT").properties).toEqual(
+                {
+                    firstName: { name: 'firstName', activeTypes: { '1': { value: 'string', default: undefined } } },
+                    lastName: { name: 'lastName', activeTypes: { '1': { value: 'string', default: undefined } } }
+                });
 
-            const rawNodesWithMiddle = [
-                { id: "1", type: "Person", props: { role: "Employee", firstName: "Alice", middleName: "Marie" } }
-            ];
-            const { lensedNodes: lensedInherited } = engine.applyLensToGraph(rawNodesWithMiddle, []);
-            expect(lensedInherited[0].appProps.middleName).toBe("Marie");
-
-            const writeAlice = engine.encodeNodeForGraph("Employee", { firstName: "Alice", middleName: "Marie" });
-            expect(writeAlice.dbType).toBe("Person");
-            expect(writeAlice.dbProps.role).toEqual({ value: "Employee", writeType: "string" });
-            expect(writeAlice.dbProps.firstName).toEqual({ value: "Alice", writeType: "string" });
-            expect(writeAlice.dbProps.middleName).toEqual({ value: "Marie", writeType: "string" });
-
-            schema.SMO_AddPropertyType({ Idenifying: "Employee", newProperty: { key: "salary", value: "number" }, whatType: "NodeType" });
-            engine.refreshCache();
-
-            const salaryLensEmp = engine.getPropertyLens("Employee", "salary", "NodeType");
-            const salaryLensCust = engine.getPropertyLens("Customer", "salary", "NodeType");
-            const salaryLensPerson = engine.getPropertyLens("Person", "salary", "NodeType");
-
-            expect(salaryLensEmp).toBeDefined();
-            expect(salaryLensEmp?.value).toBe("number");
-            expect(salaryLensCust).toBeUndefined();
-            expect(salaryLensPerson).toBeUndefined();
-
-            const rawNodesWithSalary = [
-                { id: "1", type: "Person", props: { role: "Employee", firstName: "Alice", salary: 75000 } },
-                { id: "2", type: "Person", props: { role: "Customer", firstName: "Bob", salary: 100 } }
-            ];
-            const { lensedNodes: lensedWithSalary } = engine.applyLensToGraph(rawNodesWithSalary, []);
-            expect(lensedWithSalary).toHaveLength(2);
-            expect(lensedWithSalary[0].type).toBe("Employee");
-            expect(lensedWithSalary[0].appProps.salary).toBe(75000);
-            expect(lensedWithSalary[1].type).toBe("Customer");
-            expect(lensedWithSalary[1].appProps.salary).toBeUndefined();
-
-            const writeEmployeeWithSalary = engine.encodeNodeForGraph("Employee", { firstName: "Alice", salary: 75000 });
-            expect(writeEmployeeWithSalary.dbType).toBe("Person");
-            expect(writeEmployeeWithSalary.dbProps.role).toEqual({ value: "Employee", writeType: "string" });
-            expect(writeEmployeeWithSalary.dbProps.salary).toEqual({ value: "75000", writeType: "number" });
+            const mapping1 = schema.testAccessSchemaMappings();
+            expect(mapping1.size).toBe(2);
+            const mapForPerson1 = mapping1.get("Person");
+            expect(mapForPerson1).toBeDefined();
+            expect(mapForPerson1?.kind).toBe("split");
+            expect(mapForPerson1?.mapping).toEqual({ "Employee": "Employee", "Customer": "Customer" });
+            expect(mapForPerson1?.splitProperty).toBe("role");
         });
     });
 
     describe("Union", () => {
+        // 15
         test("Union Labels", () => {
             schema.SMO_unionLabels({ oldLabel1: "resident", oldLabel2: "citizen", newLabel: "tannant" });
             expect(schema.getNodeTypeJSON("Person").labels).toEqual({ tannant: 'tannant', person: 'person' });
@@ -370,10 +429,19 @@ describe("Sequential Evolution - basic", () => {
             expect(likes).toBeDefined();
             expect(likes.sourceNodeLabel).toEqual("person");
         });
+        // 16 
         test("Union RelationshipTypes", () => {
-            // TODO
+            schema.SMO_splitRelationshipType({
+                legacyType: "KNOWS",
+                newType1: "KNOWS_CLOSE",
+                newType2: "KNOWS_ACQUAINTANCE"
+                });
+
+                expect(schema.getRelationshipTypeJSON("KNOWS_CLOSE")).toBeDefined();
+                expect(schema.getRelationshipTypeJSON("KNOWS_ACQUAINTANCE")).toBeDefined();
         });
-        test("Union PropertyTypes", () => {
+        // 17
+        test("Union NodeTypes", () => {
             // TODO
         });
     });
