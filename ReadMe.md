@@ -10,8 +10,8 @@ Replicas change schema and data locally, without coordination, and still converg
 on a single merged schema and a consistent view of the data. Schema changes never
 rewrite stored data all translation happens on interactions.
 
-Reference implementation and experimental data for the CIKM '26 paper by
-Michael Landgraf, Annette Bieniusa and Stefania Dumbrava.
+<p align="center"> Reference implementation and experimental data for the CIKM '26 paper by
+Michael Landgraf, Annette Bieniusa and Stefania Dumbrava. </p>
 
 <p align="center">
   <img src="./0_Additional_Explanatory_Material/ControlFlow_Poster.drawio.svg" width="620" alt="REFRACT architecture: Schema-CRDT, GraphDB-CRDT and the lens engine between them">
@@ -29,11 +29,11 @@ cd REFRACT
 npm install
 ```
 
-Multi-replica setups use `y-websocket` as the connection provider.
+Multi-replica setups use `y-websocket` [[*](https://github.com/yjs/y-websocket)] as the connection provider. CRDTs used are from the Yjs library [[*](https://github.com/yjs/yjs)].
 
 ## Results at a glance
 
-Evaluated on the LDBC Social Network Benchmark (SF3), against Cambria (the
+Evaluated on the LDBC Social Network Benchmark (SF3) [[*](https://ldbcouncil.org/benchmarks/snb/)], against Cambria [[*](https://www.inkandswitch.com/cambria/)] (the
 document-level state of the art) and against eager migration on the same
 GraphDB-CRDT storage backend.
 
@@ -80,12 +80,12 @@ Nodes and edges carry only property values and a `TYPE` tag, so a schema change
 never rewrites data. The physical representation stays stable across schema
 modifications, and all structural interpretation happens on the read path.
 
-The schema language is Neo4j's `GRAPH TYPE` [[1](https://neo4j.com/docs/cypher-manual/current/schema/graph-types/)],
+The schema language is Neo4j's `GRAPH TYPE` [[*](https://neo4j.com/docs/cypher-manual/current/schema/graph-types/)],
 which realises the open graph type of the GQL standard.
 
 ## Schema Modification Operators
 
-REFRACT supports 19 SMOs, motivated by the work of Bonifati et al. [[2](https://dl.acm.org/doi/10.1007/978-3-030-33223-5_37)],
+REFRACT supports 19 SMOs, motivated by the work of Bonifati et al. [[*](https://dl.acm.org/doi/10.1007/978-3-030-33223-5_37)],
 built from six categories over entities E (`NODE TYPE`, `RELATIONSHIP TYPE`,
 `LABEL`) and attributes A (labels, properties):
 
@@ -124,20 +124,18 @@ data storage, with the query engine provided by an external graph database.
 
 ## Reproducing the experiments
 
-<!-- TODO: fill in the commands and the result/figure paths. -->
-
 | RQ | Question | Command |
 | --- | --- | --- |
-| RQ1 | Downtime per SMO | `npm run ...` |
-| RQ2 | Downtime vs. dataset and schema size | `npm run ...` |
-| RQ3 | Per-node read-path translation cost | `npm run ...` |
-| RQ4 | Lazy-translation break-even point | `npm run ...` |
-| RQ5 | Horizontal scalability (1–4 replicas) | `npm run ...` |
-| RQ6 | SMOs under load | `npm run ...` |
-| RQ7 | Schema storage overhead | `npm run ...` |
+| RQ1 | Downtime per SMO | `$env:TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}'; $env:NODE_OPTIONS="--expose-gc --max-old-space-size=16384"; npx ts-node .\Benchmarks_final\Downtime_ReadOverhead\Downtime/run.ts` |
+| RQ2 | Downtime vs. dataset and schema size | `$env:TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}'; $env:NODE_OPTIONS="--expose-gc --max-old-space-size=16384"; npx ts-node .\Benchmarks_final\Downtime_ReadOverhead\NodeScaling\run.ts ` |
+| RQ3 | Per-node read-path translation cost | `$env:TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}'; $env:NODE_OPTIONS="--expose-gc --max-old-space-size=16384"; npx ts-node .\Benchmarks_final\Downtime_ReadOverhead\ReadOverhead\run.ts` |
+| RQ4 | Lazy-translation break-even point | `$env:TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}'; $env:NODE_OPTIONS="--expose-gc --max-old-space-size=16384"; npx ts-node .\Benchmarks_final\Tipping_Point\run.ts ` |
+| RQ5 | Horizontal scalability (1–4 replicas) | You need a external YCSB instance running - use  `./Benchmarks_final/ycsb_config/ ` as basis |
+| RQ6 | SMOs under load | You need a external YCSB instance running - use  `./Benchmarks_final/ycsb_config/ ` as basis` |
+| RQ7 | Schema storage overhead | `$env:TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}'; $env:NODE_OPTIONS="--expose-gc --max-old-space-size=16384"; npx ts-node .\Benchmarks_final\MemoryOverhead\run.ts` |
 
-Baselines are eager migration on the GraphDB-CRDT and Cambria. Workloads are
-driven by YCSB; all multi-replica experiments run on a single machine.
+Baselines are eager migration on the GraphDB-CRDT and Cambria [[*](https://www.inkandswitch.com/cambria/)]. Workloads are
+driven by YCSB [[*](https://github.com/yahoo/ycsb)]; all multi-replica experiments run on a single machine.
 
 ## Citation
 
@@ -170,9 +168,3 @@ driven by YCSB; all multi-replica experiments run on a single machine.
 
 ## License
 The paper is licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/), consistent with the ACM open-access terms of the original publication.
-
-## References
-
-[1] Neo4j. *Set Graph Types — Cypher Manual.* https://neo4j.com/docs/cypher-manual/current/schema/graph-types/
-
-[2] A. Bonifati, P. Furniss, A. Green, et al. *Schema Validation and Evolution for Graph Databases.* In ER, LNCS, pages 448–456. Springer, 2019. https://doi.org/10.1007/978-3-030-33223-5_37

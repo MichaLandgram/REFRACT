@@ -1,8 +1,6 @@
 import * as Y from 'yjs';
 import * as path from 'path';
 import { PropertyGraph } from '../../src/GraphDB_CRDT/PropertyGraph';
-import { PropertyGraph as PropertyGraph_old  } from '../../src/GraphDB_CRDT/Old_Problametic_Idea/PropertyGraph_problematic_idea';
-import { PropertyGraph as PropertyGraph_cleanDang } from '../../src/GraphDB_CRDT/Property_dangl_edge/PropertyGraph';
 import { Edge } from './interfaces';
 import { SchemaLensEngine } from '../../src/LensEngine/SchemaLensEngine';
 import { snbFullSchemaDef } from '../../src/Helper/Schema/Snb_Full_Schema';
@@ -57,7 +55,7 @@ export function median(times: number[]): number {
     return s.length % 2 === 1 ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
-export function loadEdges(persons: Record<string, any>[], edges: Record<string, any>[], doc: Y.Doc, db: PropertyGraph | PropertyGraph_old | PropertyGraph_cleanDang, type: string = 'KNOWS'): Record<string, any>[] {
+export function loadEdges(persons: Record<string, any>[], edges: Record<string, any>[], doc: Y.Doc, db: PropertyGraph, type: string = 'KNOWS'): Record<string, any>[] {
     const lookup = new Map<string, string>(persons.map(p => [String(p.id), String(p._nodeId)]));
     const storedEdges: Record<string, any>[] = [];
     doc.transact(() => {
@@ -102,7 +100,7 @@ export function loadEdges(persons: Record<string, any>[], edges: Record<string, 
     return storedEdges;
 }
 
-export function loadPersons(nodes: Record<string, any>[], doc: Y.Doc, db: PropertyGraph | PropertyGraph_old | PropertyGraph_cleanDang, type: string = 'Person'): Record<string, any>[] {
+export function loadPersons(nodes: Record<string, any>[], doc: Y.Doc, db: PropertyGraph, type: string = 'Person'): Record<string, any>[] {
     const storedPersons: Record<string, any>[] = [];
     doc.transact(() => {
         nodes.forEach(n => {
