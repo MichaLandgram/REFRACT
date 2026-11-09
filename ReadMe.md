@@ -4,6 +4,7 @@
   <b>Coordination-Free Schema Evolution for Replicated Property Graphs</b><br>
   <a href="https://dl.acm.org/doi/10.1145/3799682.3840015">Paper (CIKM '26)</a> ·
   <a href="./0_Additional_Explanatory_Material/REFRACT_Poster_CIKM26.pdf">Poster</a>
+  <a href="https://michael-landgraf.com">About Michael Landgraf</a>
 </p>
 
 Replicas change schema and data locally, without coordination, and still converge
